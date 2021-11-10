@@ -12,6 +12,11 @@ This data was released on 24 March 2020.
 
 ## Usage
 
+``` clojure
+(require '[witan.population.england.snpp-2018 :as pop])
+(pop/create-send-population-file! "Tower Hamlets" 2031 (str out-dir "population.csv"))
+```
+
 ## License
 
 Copyright © 2021 Mastodon C Ltd
