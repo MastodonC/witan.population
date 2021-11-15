@@ -10,8 +10,8 @@
 (def snpp-2018-file-name "2018snpppopulation/2018 SNPP Population persons.csv")
 
 (def output-columns [:calendar-year :academic-year :population])
-(def start-age 0)
-(def end-age 26)
+(def default-start-age 0)
+(def default-end-age 26)
 
 (def snpp-2018-data
   (delay (with-open [in (-> snpp-2018-file-name
@@ -24,8 +24,8 @@
                                         {:keys [la-name
                                                 max-year
                                                 start-age end-age]
-                                         :or {start-age 0
-                                              end-age 26}
+                                         :or {start-age default-start-age
+                                              end-age default-end-age}
                                          :as _opts}]
   (-> snpp-data
       (tc/select-rows #(= la-name (get % "AREA_NAME")))
@@ -106,5 +106,14 @@
   ;;    |    6 |           2029 |    9119.893 |              1 |
   ;;    |    6 |           2030 |    9160.801 |              1 |
   ;;    |    6 |           2031 |    9168.545 |              1 |
+
+  (-> (snpp-2018->witan-send-population @snpp-2018-data {:la-name "Norfolk" :max-year 2031})
+      (tc/info));; => _unnamed: descriptive-stats [4 11]:
+  ;;    |      :col-name | :datatype | :n-valid | :n-missing |     :min |         :mean |      :max | :standard-deviation |      :skew | :first |   :last |
+  ;;    |----------------|-----------|---------:|-----------:|---------:|--------------:|----------:|--------------------:|-----------:|-------:|--------:|
+  ;;    | :academic-year |    :int64 |      378 |          0 |   -5.000 |    8.00000000 |    21.000 |          7.79920420 | 0.00000000 |   -5.0 |   21.00 |
+  ;;    |           :age |    :int16 |      378 |          0 |    0.000 |   13.00000000 |    26.000 |          7.79920420 | 0.00000000 |    0.0 |   26.00 |
+  ;;    | :calendar-year |    :int64 |      378 |          0 | 2018.000 | 2024.50000000 |  2031.000 |          4.03647166 | 0.00000000 | 2018.0 | 2031.00 |
+  ;;    |    :population |  :float64 |      378 |          0 | 8429.144 | 9898.78110847 | 11972.409 |        792.26663163 | 0.10684586 | 8492.0 | 9807.62 |
 
   )
