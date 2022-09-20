@@ -1,8 +1,8 @@
 {:paths ["src" "resources"]
  :deps  {org.clojure/clojure        {:mvn/version "1.11.0"}
-         techascent/tech.ml.dataset {:mvn/version "6.085"}
-         scicloj/tablecloth         {:mvn/version "6.076"
-                                     :exclusions  [#_techascent/tech.ml.dataset org.apache.poi/poi-ooxml-schemas]}}
+         techascent/tech.ml.dataset {:mvn/version "6.098"}
+         scicloj/tablecloth         {:mvn/version "6.094.1"
+                                     :exclusions  [techascent/tech.ml.dataset org.apache.poi/poi-ooxml-schemas]}}
  :aliases
  {:test
   {:extra-paths ["test"]
