@@ -4,8 +4,7 @@
   model."
   (:require [clojure.java.io :as io]
             [tablecloth.api :as tc]
-            [tech.v3.dataset :as ds]
-            [witan.population.ncy :as ncy]))
+            [tech.v3.dataset :as ds]))
 
 (def snpp-2018-file-name "2018snpppopulation/2018 SNPP Population persons.csv")
 
@@ -19,6 +18,12 @@
                             io/file
                             io/input-stream)]
            (ds/->dataset in {:file-type :csv}))))
+
+(defn ncy->age [^long ncy]
+  (+ ncy 5))
+
+(defn age->ncy [^long age]
+  (- age 5))
 
 (defn snpp-2018->witan-send-population [snpp-data
                                         {:keys [la-name
@@ -39,7 +44,7 @@
                           "year" :calendar-year
                           "population" :population})
       (tc/select-rows #(<= (:calendar-year %) max-year))
-      (tc/map-columns :academic-year [:age] (fn [age] (ncy/age->ncy age)))
+      (tc/map-columns :academic-year [:age] (fn [age] (age->ncy age)))
       (tc/order-by [:academic-year :calendar-year])))
 
 (defn write-witan-send-population! [witan-send-population file-name]
