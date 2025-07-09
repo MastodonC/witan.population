@@ -5,7 +5,6 @@
    into the form required for `witan.send` modelling."
   (:require [clojure.java.io :as io]
             [tablecloth.api :as tc]
-            [tablecloth.column.api :as tcc]
             [tech.v3.dataset :as ds]
             [tech.v3.dataset.reductions :as dsr]))
 
