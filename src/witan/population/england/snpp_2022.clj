@@ -5,8 +5,8 @@
    into the form required for `witan.send` modelling."
   (:require [clojure.java.io :as io]
             [tablecloth.api :as tc]
-            [tablecloth.column.api :as tcc]
-            [tech.v3.dataset :as ds]))
+            [tech.v3.dataset :as ds]
+            [tech.v3.dataset.reductions :as dsr]))
 
 ;;; # Parameters
 ;;; ## Defaults
@@ -252,8 +252,10 @@
       ;; Pivot long with SNPP year in `:snpp-year` and projections in `:population`
       (tc/pivot->longer #"^\d+$" {:target-columns :snpp-year, :value-column-name :population})
       ;; Roll-up to Upper Tier LA level
-      (as-> $ (tc/group-by $ (tc/column-names $ (complement #{:area-code :area-name :LTLA22CD :LTLA22NM :population}))))
-      (tc/aggregate {:population #(-> % :population tcc/reduce-+)})
+      (as-> $ (dsr/group-by-column-agg 
+               (tc/column-names $ (complement #{:area-code :area-name :LTLA22CD :LTLA22NM :population}))
+               {:population (dsr/sum :population)}
+               $))
       ;; Derive `:calendar-year` from `:snpp-year`:
       ;; - The SNPPs are mid-year estiamtes.
       ;; - So are the population going into the next school year.
