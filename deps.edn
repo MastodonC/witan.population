@@ -2,7 +2,6 @@
  :deps    {org.clojure/clojure        {:mvn/version "1.11.4"}
            techascent/tech.ml.dataset {:mvn/version "7.059"}
            scicloj/tablecloth         {:mvn/version "7.059"
-                                       :exclusions  [techascent/tech.ml.dataset
-                                                     org.apache.poi/poi-ooxml-schemas
-                                                     org.apache.poi/poi
-                                                     org.apache.poi/poi-ooxml]}}}
+                                       :exclusions  [techascent/tech.ml.dataset]}
+           org.dhatim/fastexcel-reader {:mvn/version "0.12.8"
+                                        :exclusions [org.apache.poi/poi-ooxml]}}}
