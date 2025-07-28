@@ -6,7 +6,9 @@
   (:require [clojure.java.io :as io]
             [tablecloth.api :as tc]
             [tech.v3.dataset :as ds]
-            [tech.v3.dataset.reductions :as dsr]))
+            [tech.v3.dataset.reductions :as dsr]
+            [tech.v3.datatype.functional :as dfn]
+            [witan.population.england.mye-2023 :as mye]))
 
 ;;; # Parameters
 ;;; ## Defaults
@@ -223,59 +225,84 @@
                                min-academic-year max-academic-year
                                min-calendar-year max-calendar-year max-year]
                         :or   {min-academic-year default-min-academic-year
-                               max-academic-year default-max-academic-year}}]
-  (-> ds
-      ;; Derive `:academic-year` from `:age-group`:
-      ;; - The SNPPs are mid-year estiamtes.
-      ;; - Therefore the age is (almost) the age on 31st August, i.e. at the start of the school year.
-      ;; - Per https://www.gov.uk/national-curriculum, 
-      ;;   children aged 5 at the start of the school year should be in NCY 1.
-      ;; - Thus the offset between age at the start of the school year and NCY is -4.
-      (tc/drop-rows (comp #{"90 and over" "All ages"} :age-group))
-      (tc/map-columns :age :int8 [:age-group] parse-long)
-      (tc/map-columns :academic-year :int8 [:age] #(- % 4))
-      ;; Select required `:academic-year`s (if specified)
-      (cond->
-       min-academic-year (tc/select-rows #(-> % :academic-year (>= min-academic-year)))
-       max-academic-year (tc/select-rows #(-> % :academic-year (<= max-academic-year))))
-      ;; Merge in Upper Tier LA codes and names
-      (tc/left-join (tc/select-columns LTLA22->UTLA22 [:LTLA22CD :LTLA22NM
+                               max-academic-year default-max-academic-year}
+                        :as    options}]
+  (as-> ds $
+    ;; Derive `:academic-year` from `:age-group`:
+    ;; - The SNPPs are mid-year estiamtes.
+    ;; - Therefore the age is (almost) the age on 31st August, i.e. at the start of the school year.
+    ;; - Per https://www.gov.uk/national-curriculum,
+    ;;   children aged 5 at the start of the school year should be in NCY 1.
+    ;; - Thus the offset between age at the start of the school year and NCY is -4.
+    (tc/drop-rows $ (comp #{"90 and over" "All ages"} :age-group))
+    (tc/map-columns $ :age :int8 [:age-group] parse-long)
+    (tc/map-columns $ :academic-year :int8 [:age] #(- % 4))
+    ;; Select required `:academic-year`s (if specified)
+    (cond-> $
+      min-academic-year (tc/select-rows #(-> % :academic-year (>= min-academic-year)))
+      max-academic-year (tc/select-rows #(-> % :academic-year (<= max-academic-year))))
+    ;; Merge in Upper Tier LA codes and names
+    (tc/left-join $ (tc/select-columns LTLA22->UTLA22 [:LTLA22CD :LTLA22NM
                                                        :UTLA22CD :UTLA22NM])
-                    {:left  [:area-code]
-                     :right [:LTLA22CD]})
-      (tc/reorder-columns [:area-code :area-name :LTLA22CD :LTLA22NM :UTLA22CD :UTLA22NM])
-      ;; Select Upper Tier LA (if specified)
-      (cond->
-       UTLA22CD (tc/select-rows #(-> % :UTLA22CD (= UTLA22CD)))
-       UTLA22NM (tc/select-rows #(-> % :UTLA22NM (= UTLA22NM)))
-       la-name  (tc/select-rows #(-> % :UTLA22NM (= la-name))))
-      ;; Pivot long with SNPP year in `:snpp-year` and projections in `:population`
-      (tc/pivot->longer #"^\d+$" {:target-columns :snpp-year, :value-column-name :population})
-      ;; Roll-up to Upper Tier LA level
-      (as-> $ (dsr/group-by-column-agg 
-               (tc/column-names $ (complement #{:area-code :area-name :LTLA22CD :LTLA22NM :population}))
-               {:population (dsr/sum :population)}
-               $))
-      ;; Derive `:calendar-year` from `:snpp-year`:
-      ;; - The SNPPs are mid-year estiamtes.
-      ;; - So are the population going into the next school year.
-      ;; - Which will be reported in the following year's SEN2 census.
-      ;; - So `:calendar-year` (the year for the corresponding SEN2 census date) is one more than `:snpp-year`.
-      (tc/convert-types {:snpp-year :int16})
-      (tc/map-columns :calendar-year :int16 [:snpp-year] inc)
-      ;; Select `:calendar-year`s (if specified)
-      (cond->
-       min-calendar-year (tc/select-rows #(-> % :calendar-year (>= min-calendar-year)))
-       max-calendar-year (tc/select-rows #(-> % :calendar-year (<= max-calendar-year)))
-       max-year          (tc/select-rows #(-> % :calendar-year (<= max-year))))
-      ;; Arrange dataset
-      (tc/reorder-columns [:UTLA22CD :UTLA22NM
+                  {:left  [:area-code]
+                   :right [:LTLA22CD]})
+    (tc/reorder-columns $ [:area-code :area-name :LTLA22CD :LTLA22NM :UTLA22CD :UTLA22NM])
+    ;; Select Upper Tier LA (if specified)
+    (cond-> $
+      UTLA22CD (tc/select-rows #(-> % :UTLA22CD (= UTLA22CD)))
+      UTLA22NM (tc/select-rows #(-> % :UTLA22NM (= UTLA22NM)))
+      la-name  (tc/select-rows #(-> % :UTLA22NM (= la-name))))
+    ;; Pivot long with SNPP year in `:snpp-year` and projections in `:population`
+    (tc/pivot->longer $ #"^\d+$" {:target-columns :snpp-year,
+                                  :value-column-name :population
+                                  :datatypes {:snpp-year :int16}})
+    ;; Roll-up to Upper Tier LA level
+    (dsr/group-by-column-agg (tc/column-names $ (complement #{:area-code :area-name :LTLA22CD :LTLA22NM :population}))
+                             {:population (dsr/sum :population)}
+                             $)
+    ;; Derive `:calendar-year` from `:snpp-year`:
+    ;; - The SNPPs are mid-year estiamtes.
+    ;; - So are the population going into the next school year.
+    ;; - Which will be reported in the following year's SEN2 census.
+    ;; - So `:calendar-year` (the year for the corresponding SEN2 census date) is one more than `:snpp-year`.
+    (tc/map-columns $ :calendar-year :int16 [:snpp-year] inc)
+    ;; Select `:calendar-year`s (if specified)
+    (cond-> $
+      min-calendar-year (tc/select-rows #(-> % :calendar-year (>= min-calendar-year)))
+      max-calendar-year (tc/select-rows #(-> % :calendar-year (<= max-calendar-year)))
+      max-year          (tc/select-rows #(-> % :calendar-year (<= max-year))))
+    (tc/add-column $ :data-source "SNPP 2022")
+    ;; if `min-calendar-year` is earlier than 2022 combine SNPP with mid-year estimates (MYE) data
+    (cond-> $
+      min-calendar-year (cond->
+                            (<= min-calendar-year 2022)
+                          (tc/concat (-> (mye/->MYE-ds)
+                                         (mye/ds->witan-send-population (assoc options
+                                                                               :max-calendar-year
+                                                                               (dec (apply dfn/min (:calendar-year $)))))
+                                         (tc/rename-columns {:ladcode23 :UTLA22CD
+                                                             :laname23  :UTLA22NM
+                                                             :mye-year  :snpp-year})
+                                         (tc/drop-columns [:country])
+                                         (tc/map-columns :age-group [:age] (fn [age] age))
+                                         (tc/add-columns {:component   "Population"
+                                                          :sex         "persons"
+                                                          :data-source "MYE 2023"})))))
+    ;; Arrange dataset
+    (tc/reorder-columns $ [:UTLA22CD :UTLA22NM
                            :snpp-year :calendar-year
                            :age-group :age :academic-year
                            :component :sex
                            :population])
-      (tc/order-by [:snpp-year :age])
-      (tc/set-dataset-name "SNPP 2022 by UTLA by NCY and SEN2 calendar year")))
+    (tc/order-by $ [:snpp-year :age])
+    (tc/set-dataset-name $ (let [root "SNPP 2022 by UTLA by NCY and SEN2 calendar year"]
+                             (cond
+                               min-calendar-year
+                               (if (<= min-calendar-year 2022)
+                                 (str "MYE 2023 & " root)
+                                 root)
+                               :else
+                               root)))))
 
 (defn ->witan-send-population
   "Reads SNPPs from CSV file specified by either `resource-file-name` or `file-path`
@@ -283,13 +310,15 @@
    rolls up to Upper Tier LA level using LTLA22->UTLA22 lookup read from CSV file
    specified by either `LTLA22->UTLA22-lookup-file-path` or `LTLA22->UTLA22-lookup-resource-file-name`,
    (defaulting to `LTLA22->UTLA22-lookup-default-resource-file-name` if neither specified)
-   and returns a long dataset with SNPP `:population` estimates by `:snpp-year` 
-   rolled up to the Upper Tier LA level, with `witan.send` variables 
+   and returns a long dataset with SNPP `:population` estimates by `:snpp-year`
+   rolled up to the Upper Tier LA level, with `witan.send` variables
    `:calendar-year` and `:academic-year` added.
+   If `:min-calendar-year` is < 2022 then Mid-Year Estimates (MYEs) are included in the same
+   format as the SNPPs.
    Dataset can be filtered by specifying (optional) values for:
    - Upper Tier LA: via code (string) `UTLA22CD` or name (string) `UTLA22NM`,
      or (for backwards compatibility) via name (string) `la-name`.
-   - NCYs: via (integer) `min-academic-year` and/or `max-academic-year`. 
+   - NCYs: via (integer) `min-academic-year` and/or `max-academic-year`.
    - `:calendar-year`s: via (integer) `min-calendar-year` and/or `max-calendar-year`,
      or (for backwards compatibility) via (integer) `max-year`."
   [& {::keys [resource-file-name file-path dataset-name]
