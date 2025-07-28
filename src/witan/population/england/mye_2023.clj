@@ -80,8 +80,8 @@
 ;; - …and possibly filtered for NCYs & `:calendar-year`s
 
 (defn ds->witan-send-population
-  "Given MYE dataset `ds` returns a long dataset with SNPP `:population` estimates
-   by `:snpp-year` with `witan.send` variables `:calendar-year` and `:academic-year`
+  "Given MYE dataset `ds` returns a long dataset with MYE `:population` estimates
+   by `:mye-year` with `witan.send` variables `:calendar-year` and `:academic-year`
    added.
    Dataset can be filtered by specifying (optional) values for:
    - LA: via code (string) `:la-code` or name (string) `:la-name`.
@@ -90,7 +90,7 @@
      or (for backwards compatibility) via (integer) `:max-year`."
   ;; Note that compared to `witan.population.england.snpp-2018/snpp-2018->witan-send-population`
   ;; `:calendar-year` differs by +1 and `:academic-year` by +1,
-  ;; due to consideration of SNPPs as mid-year estimates.
+  ;; due to consideration of mid-year estimates.
   [ds & {:keys [la-code la-name
                 min-academic-year max-academic-year
                 min-calendar-year max-calendar-year max-year]
@@ -128,7 +128,7 @@
     ;; Derive `:calendar-year` from `:mye-year`:
     ;; - Mid-year estimates (MYE) are the population going into the next school year.
     ;; - Which will be reported in the following year's SEN2 census.
-    ;; - So `:calendar-year` (the year for the corresponding SEN2 census date) is one more than `:snpp-year`.
+    ;; - So `:calendar-year` (the year for the corresponding SEN2 census date) is one more than `:mye-year`.
     (tc/map-columns $ :calendar-year :int16 [:mye-year] inc)
     ;; Select `:calendar-year`s (if specified)
     (cond-> $
@@ -149,10 +149,10 @@
    by `:mye-year` with `witan.send` variables `:calendar-year` and `:academic-year`
    added.
    Dataset can be filtered by specifying (optional) values for:
-   - LA: via code (string) `ladcode23` or name (string) `ladname23`.
-   - NCYs: via (integer) `min-academic-year` and/or `max-academic-year`.
-   - `:calendar-year`s: via (integer) `min-calendar-year` and/or `max-calendar-year`,
-     or (for backwards compatibility) via (integer) `max-year`."
+   - LA: via code (string) `:la-code` or name (string) `:la-name`.
+   - NCYs: via (integer) `:min-academic-year` and/or `:max-academic-year`.
+   - `:calendar-year`s: via (integer) `:min-calendar-year` and/or `@max-calendar-year`,
+     or (for backwards compatibility) via (integer) `:max-year`."
   [& {::keys [resource-file-name file-path dataset-name]
       :keys  [la-name min-academic-year max-academic-year
               min-calendar-year max-calendar-year max-year]
