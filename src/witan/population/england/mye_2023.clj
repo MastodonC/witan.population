@@ -84,10 +84,10 @@
    by `:snpp-year` with `witan.send` variables `:calendar-year` and `:academic-year`
    added.
    Dataset can be filtered by specifying (optional) values for:
-   - LA: via code (string) `ladcode23` or name (string) `ladname23`.
-   - NCYs: via (integer) `min-academic-year` and/or `max-academic-year`.
-   - `:calendar-year`s: via (integer) `min-calendar-year` and/or `max-calendar-year`,
-     or (for backwards compatibility) via (integer) `max-year`."
+   - LA: via code (string) `:la-code` or name (string) `:la-name`.
+   - NCYs: via (integer) `:min-academic-year` and/or `:max-academic-year`.
+   - `:calendar-year`s: via (integer) `:min-calendar-year` and/or `:max-calendar-year`,
+     or (for backwards compatibility) via (integer) `:max-year`."
   ;; Note that compared to `witan.population.england.snpp-2018/snpp-2018->witan-send-population`
   ;; `:calendar-year` differs by +1 and `:academic-year` by +1,
   ;; due to consideration of SNPPs as mid-year estimates.
