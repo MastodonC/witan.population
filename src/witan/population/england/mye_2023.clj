@@ -123,9 +123,8 @@
                                                                         :splitter #":population_(.*)"
                                                                         :datatypes {:mye-year   :int16
                                                                                     :population :int16}})
-    ;; Derive `:calendar-year` from `:snpp-year`:
-    ;; - The SNPPs are mid-year estiamtes.
-    ;; - So are the population going into the next school year.
+    ;; Derive `:calendar-year` from `:mye-year`:
+    ;; - Mid-year estimates (MYE) are the population going into the next school year.
     ;; - Which will be reported in the following year's SEN2 census.
     ;; - So `:calendar-year` (the year for the corresponding SEN2 census date) is one more than `:snpp-year`.
     (tc/map-columns $ :calendar-year :int16 [:mye-year] inc)
