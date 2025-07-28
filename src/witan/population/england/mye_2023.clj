@@ -5,7 +5,6 @@
    into the form required for `witan.send` modelling."
   (:require [clojure.java.io :as io]
             [tablecloth.api :as tc]
-            [tech.v3.dataset :as ds]
             [tech.v3.datatype.functional :as dfn]
             [tech.v3.libs.fastexcel :as fst]))
 
