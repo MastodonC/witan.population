@@ -118,11 +118,11 @@
     (cond-> $
       la-code  (tc/select-rows #(-> % :ladcode23 (= la-code)))
       la-name  (tc/select-rows #(-> % :laname23 (= la-name))))
-    (tc/pivot->longer $ #(clojure.string/starts-with? % ":population") {:target-columns :mye-year
-                                                                        :value-column-name :population
-                                                                        :splitter #":population_(.*)"
-                                                                        :datatypes {:mye-year   :int16
-                                                                                    :population :int16}})
+    (tc/pivot->longer $ #":population_(.*)" {:target-columns :mye-year
+                                             :value-column-name :population
+                                             :splitter #":population_(.*)"
+                                             :datatypes {:mye-year   :int16
+                                                         :population :int16}})
     ;; Derive `:calendar-year` from `:mye-year`:
     ;; - Mid-year estimates (MYE) are the population going into the next school year.
     ;; - Which will be reported in the following year's SEN2 census.
