@@ -105,6 +105,10 @@
     ;; - Thus the offset between age at the start of the school year and NCY is -4.
     ;; Remove outside of SEN age
     (tc/drop-rows $ (comp (into (sorted-set) (range 26 91)) :age))
+    ;; Filter by LA code or name
+    (cond-> $
+      la-code  (tc/select-rows #(-> % :ladcode23 (= la-code)))
+      la-name  (tc/select-rows #(-> % :laname23 (= la-name))))
     (tc/group-by $ [:ladcode23 :laname23 :country :age])
     (tc/aggregate $ (reduce (fn [m coll]
                               (assoc m
@@ -116,9 +120,6 @@
     (cond-> $
       min-academic-year (tc/select-rows #(-> % :academic-year (>= min-academic-year)))
       max-academic-year (tc/select-rows #(-> % :academic-year (<= max-academic-year))))
-    (cond-> $
-      la-code  (tc/select-rows #(-> % :ladcode23 (= la-code)))
-      la-name  (tc/select-rows #(-> % :laname23 (= la-name))))
     (tc/pivot->longer $ #":population_(.*)" {:target-columns :mye-year
                                              :value-column-name :population
                                              :splitter #":population_(.*)"
