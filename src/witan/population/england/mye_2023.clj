@@ -103,6 +103,7 @@
     ;; - Per https://www.gov.uk/national-curriculum,
     ;;   children aged 5 at the start of the school year should be in NCY 1.
     ;; - Thus the offset between age at the start of the school year and NCY is -4.
+    ;; Remove outside of SEN age
     (tc/drop-rows $ (comp (into (sorted-set) (range 26 91)) :age))
     (tc/group-by $ [:ladcode23 :laname23 :country :age])
     (tc/aggregate $ (reduce (fn [m coll]
