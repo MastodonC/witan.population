@@ -143,8 +143,8 @@
     (tc/set-dataset-name $ "MYE 2023 by LA by NCY and SEN2 calendar year")))
 
 (defn ->witan-send-population
-  "Given MYE dataset `ds` returns a long dataset with SNPP `:population` estimates
-   by `:snpp-year` with `witan.send` variables `:calendar-year` and `:academic-year`
+  "Given MYE dataset `ds` returns a long dataset with MYE `:population` estimates
+   by `:mye-year` with `witan.send` variables `:calendar-year` and `:academic-year`
    added.
    Dataset can be filtered by specifying (optional) values for:
    - LA: via code (string) `ladcode23` or name (string) `ladname23`.
