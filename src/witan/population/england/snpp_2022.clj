@@ -310,13 +310,15 @@
    rolls up to Upper Tier LA level using LTLA22->UTLA22 lookup read from CSV file
    specified by either `LTLA22->UTLA22-lookup-file-path` or `LTLA22->UTLA22-lookup-resource-file-name`,
    (defaulting to `LTLA22->UTLA22-lookup-default-resource-file-name` if neither specified)
-   and returns a long dataset with SNPP `:population` estimates by `:snpp-year` 
-   rolled up to the Upper Tier LA level, with `witan.send` variables 
+   and returns a long dataset with SNPP `:population` estimates by `:snpp-year`
+   rolled up to the Upper Tier LA level, with `witan.send` variables
    `:calendar-year` and `:academic-year` added.
+   If `:min-calendar-year` is < 2022 then Mid-Year Estimates (MYEs) are included in the same
+   format as the SNPPs.
    Dataset can be filtered by specifying (optional) values for:
    - Upper Tier LA: via code (string) `UTLA22CD` or name (string) `UTLA22NM`,
      or (for backwards compatibility) via name (string) `la-name`.
-   - NCYs: via (integer) `min-academic-year` and/or `max-academic-year`. 
+   - NCYs: via (integer) `min-academic-year` and/or `max-academic-year`.
    - `:calendar-year`s: via (integer) `min-calendar-year` and/or `max-calendar-year`,
      or (for backwards compatibility) via (integer) `max-year`."
   [& {::keys [resource-file-name file-path dataset-name]
