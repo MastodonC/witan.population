@@ -28,7 +28,7 @@
   "Name of resource file mapping Lower Tier Local Authority codes/names to Upper Tier Local Authorities.
    Using 2022 file as these match the Lower Tier Local Authority codes used in the 2022 based SNPP.
    From: https://open-geography-portalx-ons.hub.arcgis.com/datasets/ons::local-authority-district-to-county-and-unitary-authority-december-2022-lookup-in-ew/about"
-  "Lower_Tier_Local_Authority_to_Upper_Tier_Local_Authority_(December_2022)_Lookup_in_England_and_Wales.csv")
+  "LUP_LAD_CTYUA/Lower_Tier_Local_Authority_to_Upper_Tier_Local_Authority_(December_2022)_Lookup_in_England_and_Wales.csv")
 
 (def output-columns
   "Output columns for `witan.send` population.csv file."
