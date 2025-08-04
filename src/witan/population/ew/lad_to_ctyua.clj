@@ -35,7 +35,8 @@
 
 (defn ->dataset
   "Read mapping of Local Authority Districts in England & Wales to County and Unitary Authority from CSV file
-   specified by either `file-path` or `resource-file-name` or `year` (for which resource file is looked up)."
+   specified by either `file-path` or `resource-file-name` or `year` (for which resource file is looked up)
+   into a dataset."
   [& {:keys [file-path
              resource-file-name
              year
@@ -50,6 +51,7 @@
                             :header-row?  true
                             :key-fn       #(-> %
                                                (str/replace #"^LTLA|UTLA" {"LTLA" "LAD", "UTLA" "CTYUA"})
+                                               str/lower-case
                                                keyword)
                             :dataset-name (or dataset-name file-path resource-file-name)})))))
 
@@ -57,10 +59,68 @@
   ;; Number of LADCDs with more than one record:
   (update-vals resource-file-name-for-year (fn [s] (as-> s $
                                                      (->dataset :resource-file-name $)
-                                                     (tc/group-by $ (tc/column-names $ #"^:LAD\d\dCD"))
+                                                     (tc/group-by $ (tc/column-names $ #"^:lad\d\dcd"))
                                                      (tc/aggregate $ {:row-count tc/row-count})
                                                      (tc/select-rows $ #(-> % :row-count (> 1)))
                                                      (tc/row-count $))))
   ;;=> {2022 0, 2023 0, 2024 0, 2025 0}
   
  :rcf)
+
+(comment ;; EDA: Dataset structures for each resource-file
+  (update-vals resource-file-name-for-year (fn [s] (as-> s $
+                                                     (->dataset :resource-file-name $)
+                                                     (tc/info $)
+                                                     (tc/select-columns $ [:col-name :datatype :n-valid :n-missing :min :max]))))
+  ;;=> {2022
+  ;;    LUP_LAD_CTYUA/Lower_Tier_Local_Authority_to_Upper_Tier_Local_Authority_(December_2022)_Lookup_in_England_and_Wales.csv: descriptive-stats [5 6]:
+  ;;   
+  ;;   |  :col-name | :datatype | :n-valid | :n-missing | :min |  :max |
+  ;;   |------------|-----------|---------:|-----------:|-----:|------:|
+  ;;   |   :lad22cd |   :string |      331 |          0 |      |       |
+  ;;   |   :lad22nm |   :string |      331 |          0 |      |       |
+  ;;   | :ctyua22cd |   :string |      331 |          0 |      |       |
+  ;;   | :ctyua22nm |   :string |      331 |          0 |      |       |
+  ;;   |  :objectid |    :int16 |      331 |          0 |  1.0 | 331.0 |
+  ;;   ,
+  ;;    2023
+  ;;    LUP_LAD_CTYUA/Local_Authority_District_to_County_and_Unitary_Authority_(April_2023)_Lookup_in_EW.csv: descriptive-stats [7 6]:
+  ;;   
+  ;;   |   :col-name | :datatype | :n-valid | :n-missing | :min |  :max |
+  ;;   |-------------|-----------|---------:|-----------:|-----:|------:|
+  ;;   |    :lad23cd |   :string |      318 |          0 |      |       |
+  ;;   |    :lad23nm |   :string |      318 |          0 |      |       |
+  ;;   |   :lad23nmw |   :string |       22 |        296 |      |       |
+  ;;   |  :ctyua23cd |   :string |      318 |          0 |      |       |
+  ;;   |  :ctyua23nm |   :string |      318 |          0 |      |       |
+  ;;   | :ctyua23nmw |   :string |       22 |        296 |      |       |
+  ;;   |   :objectid |    :int16 |      318 |          0 |  1.0 | 318.0 |
+  ;;   ,
+  ;;    2024
+  ;;    LUP_LAD_CTYUA/Local_Authority_to_County_and_Unitary_Authority_(December_2024)_Lookup_in_EW.csv: descriptive-stats [7 6]:
+  ;;   
+  ;;   |   :col-name | :datatype | :n-valid | :n-missing | :min |  :max |
+  ;;   |-------------|-----------|---------:|-----------:|-----:|------:|
+  ;;   |    :lad24cd |   :string |      318 |          0 |      |       |
+  ;;   |    :lad24nm |   :string |      318 |          0 |      |       |
+  ;;   |   :lad24nmw |   :string |       22 |        296 |      |       |
+  ;;   |  :ctyua24cd |   :string |      318 |          0 |      |       |
+  ;;   |  :ctyua24nm |   :string |      318 |          0 |      |       |
+  ;;   | :ctyua24nmw |   :string |       22 |        296 |      |       |
+  ;;   |   :objectid |    :int16 |      318 |          0 |  1.0 | 318.0 |
+  ;;   ,
+  ;;    2025
+  ;;    LUP_LAD_CTYUA/Local_Authority_District_to_County_and_Unitary_Authority_(April_2025)_Lookup_in_EW_v2.csv: descriptive-stats [7 6]:
+  ;;   
+  ;;   |   :col-name | :datatype | :n-valid | :n-missing | :min |  :max |
+  ;;   |-------------|-----------|---------:|-----------:|-----:|------:|
+  ;;   |    :lad25cd |   :string |      318 |          0 |      |       |
+  ;;   |    :lad25nm |   :string |      318 |          0 |      |       |
+  ;;   |   :lad25nmw |   :string |       22 |        296 |      |       |
+  ;;   |  :ctyua25cd |   :string |      318 |          0 |      |       |
+  ;;   |  :ctyua25nm |   :string |      318 |          0 |      |       |
+  ;;   | :ctyua25nmw |   :string |       22 |        296 |      |       |
+  ;;   |   :objectid |    :int16 |      318 |          0 |  1.0 | 318.0 |
+  ;;   }
+
+  :rcf)
