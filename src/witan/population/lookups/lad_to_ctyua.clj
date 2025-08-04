@@ -1,5 +1,5 @@
-(ns witan.population.ew.lad-to-ctyua
-  "Lookups mapping Local Authority Districts in England & Wales to County and Unitary Authority.
+(ns witan.population.lookups.lad-to-ctyua
+  "Lookups mapping UK Local Authority Districts to County and Unitary Authority.
    Data from: https://geoportal.statistics.gov.uk/search?q=LUP_LTLA_UTLA.
    Note dataset columns (<=2023) are (re)named using the aliases: LTLA->LAD & UTLA->CTYUA."
   (:require [clojure.java.io :as io]
