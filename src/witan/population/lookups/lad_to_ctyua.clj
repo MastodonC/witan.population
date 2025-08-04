@@ -34,9 +34,10 @@
    2025 LAD25-CTYUA25-EQ-LU-resource-file-name})
 
 (defn ->dataset
-  "Read mapping of Local Authority Districts in England & Wales to County and Unitary Authority from CSV file
-   specified by either `file-path` or `resource-file-name` or `year` (for which resource file is looked up)
-   into a dataset."
+  "Read mapping of Local Authority Districts to County and Unitary Authority 
+   from CSV file into a dataset.
+   Specify CSV file by either `file-path` or `resource-file-name` or `year` 
+   (for which resource file is looked up)."
   [& {:keys [file-path
              resource-file-name
              year
@@ -46,14 +47,15 @@
     (with-open [in (-> (or file-path (io/resource resource-file-name))
                        io/file
                        io/input-stream)]
-      (-> (ds/->dataset in {:file-type    :csv
-                            :separator    ","
-                            :header-row?  true
-                            :key-fn       #(-> %
-                                               (str/replace #"^LTLA|UTLA" {"LTLA" "LAD", "UTLA" "CTYUA"})
-                                               str/lower-case
-                                               keyword)
-                            :dataset-name (or dataset-name file-path resource-file-name)})))))
+      (-> in
+          (ds/->dataset {:file-type    :csv
+                         :separator    ","
+                         :header-row?  true
+                         :key-fn       #(-> %
+                                            (str/replace #"^LTLA|UTLA" {"LTLA" "LAD", "UTLA" "CTYUA"})
+                                            str/lower-case
+                                            keyword)
+                         :dataset-name (or dataset-name file-path resource-file-name)})))))
 
 (comment ;; Check LADCDs in each resource-file are unique
   ;; Number of LADCDs with more than one record:
