@@ -1,7 +1,7 @@
-(ns witan.population.england-wales.mye-2023
+(ns witan.population.england-wales.mye
   "Functions to read and process ONS Subnational Mid-Year Population Estimates (MYE)
-     for LAs by single year of age and sex from: 
-     https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/datasets/estimatesofthepopulationforenglandandwales"
+  for LAs by single year of age and sex downloaded from: 
+  https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/datasets/estimatesofthepopulationforenglandandwales"
   (:require [clojure.string :as str]
             [clojure.java.io :as io]
             [tech.v3.libs.fastexcel :as fst]
@@ -10,37 +10,49 @@
             [tablecloth.api :as tc]
             [witan.population.lookups.lad-to-ctyua :as lad->ctyua]))
 
-(def default-resource-file-name
-  "Name of resource file containing subnational mid-year population estimates
-   (for LAs by single year of age and sex) to use by default."
-  "myebtablesenglandwales/myebtablesenglandwales20112023.xlsx")
+(def resource-options
+  "Option sets for resource files containing subnational mid-year population 
+   estimates (for LAs by single year of age and sex)."
+  {"myebtablesenglandwales20112022v3-2021-geography" {::resource-file-name "myebtablesenglandwales/myebtablesenglandwales20112022v3.xlsx"
+                                                      ::sheet-name         "MYEB1 (2021 Geography)"}
+   "myebtablesenglandwales20112022v3-2023-geography" {::resource-file-name "myebtablesenglandwales/myebtablesenglandwales20112022v3.xlsx"
+                                                      ::sheet-name         "MYEB1 (2023 Geography)"}
+   "myebtablesenglandwales20112023"                  {::resource-file-name "myebtablesenglandwales/myebtablesenglandwales20112023.xlsx"
+                                                      ::sheet-name         "MYEB1"}
+   "myebtablesenglandwales20112024"                  {::resource-file-name "myebtablesenglandwales/myebtablesenglandwales20112024.xlsx"
+                                                      ::sheet-name         "MYEB1"}})
+
+(def default-options
+  (get resource-options "myebtablesenglandwales20112023"))
+
 
 (defn ->dataset-raw
   "Read MYEs from MYEB1 sheet of Excel workbook into a dataset.
    Specify Excel file by either `file-path` or `resource-file-name`,
    defaulting to `default-resource-file-name` if neither specified."
-  [& {::keys [file-path resource-file-name dataset-name]
-      :or    {resource-file-name default-resource-file-name}}]
+  [& {::keys [file-path resource-file-name dataset-name sheet-name]
+      :or    {resource-file-name (:resource-file-name default-options)
+              sheet-name         (:sheet-name         default-options)}}]
   (with-open [in (-> (or file-path (io/resource resource-file-name))
                      io/file
                      io/input-stream)]
     (-> in
         fst/input->workbook
-        ((partial some #(when (= "MYEB1" (.name %)) %)))
+        ((partial some #(when (= sheet-name (.name %)) %)))
         (ss/sheet->dataset {:n-initial-skip-rows 1
                             :header-row?         true
                             :key-fn              keyword
                             :parser-fn           {:age :int8}
                             :dataset-name        (or dataset-name
-                                                     (when file-path (str file-path " " "MYEB1"))
-                                                     (when resource-file-name (str resource-file-name " " "MYEB1")))}))))
+                                                     (when file-path (str "[" file-path "]" sheet-name))
+                                                     (when resource-file-name (str "[" resource-file-name "]" sheet-name)))}))))
 
-(comment ;; Structure of raw dataset from default file
-  (-> {:resource-file-name default-resource-file-name}
+(comment ;; Structure of raw dataset for default options
+  (-> default-options
       ->dataset-raw
       tc/info
       (tc/select-columns [:col-name :datatype :n-valid :n-missing :min :max]))
-  ;;=> myebtablesenglandwales/myebtablesenglandwales20112023.xlsx MYEB1: descriptive-stats [18 6]:
+  ;;=> [myebtablesenglandwales/myebtablesenglandwales20112023.xlsx]MYEB1: descriptive-stats [18 6]:
   ;;   
   ;;   |        :col-name | :datatype | :n-valid | :n-missing | :min |    :max |
   ;;   |------------------|-----------|---------:|-----------:|-----:|--------:|
@@ -85,64 +97,85 @@
                 ctyuacd-f ctyuanm-f
                 min-age   max-age
                 min-year  max-year]}]
-  (as-> ds $
-    ;; Canonicalise column names
-    (tc/rename-columns $ {:ladcode23 :lad23cd
-                          :laname23  :lad23nm})
-    ;; Filter for LAD codes/names if requested
-    (cond-> $
-      ladcd-f (tc/select-rows (comp ladcd-f :lad23cd))
-      ladnm-f (tc/select-rows (comp ladnm-f :lad23nm)))
-    ;; Merge in CTYUA codes and names
-    (tc/left-join $
-                  (-> (lad->ctyua/->dataset {:year 2023, :dataset-name "lad->ctyua"})
-                      (tc/select-columns [:lad23cd :ctyua23cd :ctyua23nm]))
-                  [:lad23cd])
-    (tc/drop-columns $ #"^:lad->ctyua\..+$")
-    ;; Filter for CTYUA codes/names if requested
-    (cond-> $
-      ctyuacd-f (tc/select-rows (comp ctyuacd-f :ctyua23cd))
-      ctyuanm-f (tc/select-rows (comp ctyuanm-f :ctyua23nm)))
-    ;; Filter for (integer) ages if requested
-    (cond-> $
-      min-age (tc/select-rows #(some-> % :age (>= min-age)))
-      max-age (tc/select-rows #(some-> % :age (<= max-age))))
-    ;; Pivot long for `:year`
-    (tc/pivot->longer $ #"^:population_\d{4}" {:target-columns    :year
-                                               :value-column-name :population
-                                               :splitter          #"^:population_(\d{4})"
-                                               :datatypes         {:year       :int16
-                                                                   :population :int16}})
-    ;; Filter for (integer) years if requested
-    (cond-> $
-      min-year (tc/select-rows #(some-> % :year (>= min-year)))
-      max-year (tc/select-rows #(some-> % :year (<= max-year))))
-    ;; Roll up across `:sex` M & F
-    (dsr/group-by-column-agg (tc/column-names $ (complement #{:sex :population}))
-                             {:population (dsr/sum :population)}
-                             $)
-    (tc/add-column $ :sex "persons")
-    ;; Arrange dataset
-    (tc/reorder-columns $ [:lad23cd :lad23nm :ctyua23cd :ctyua23nm
-                           :country
-                           :year
-                           :age
-                           :sex
-                           :population])
-    (tc/order-by $ (tc/column-names $))
-    (tc/set-dataset-name $ "MYE 2023 by LAD")))
+  (let [geography-year-yy (->> ds
+                               tc/column-names
+                               (some (comp second (partial re-matches #"^ladcode(\d\d)") name)))
+        ladcd-col   (keyword (str "lad"   geography-year-yy "cd"))
+        ladnm-col   (keyword (str "lad"   geography-year-yy "nm"))
+        ctyuacd-col (keyword (str "ctyua" geography-year-yy "cd"))
+        ctyuanm-col (keyword (str "ctyua" geography-year-yy "nm"))]
+    (as-> ds $
+      ;; Canonicalise column names: `:ladcode##`→`:lad##cd` & `:laname##`→`:lad##cd`
+      (tc/rename-columns $
+                         (fn [k]
+                           (some-> k
+                                   name
+                                   (str/replace #"^(ladcode|laname)(\d\d)$"
+                                                #(str "lad"
+                                                      (nth % 2)
+                                                      (get {"ladcode" "cd"
+                                                            "laname"  "nm"} (nth % 1))))
+                                   keyword)))
+      ;; Filter for LAD codes/names if requested
+      (cond-> $
+        ladcd-f (tc/select-rows (comp ladcd-f ladcd-col))
+        ladnm-f (tc/select-rows (comp ladnm-f ladnm-col)))
+      ;; Merge in CTYUA codes and names
+      (tc/left-join $
+                    (-> (lad->ctyua/->dataset {:geography-year-yy geography-year-yy
+                                               :dataset-name      "lad->ctyua"})
+                        (tc/select-columns [ladcd-col ctyuacd-col ctyuanm-col]))
+                    [ladcd-col])
+      (tc/drop-columns $ #"^:lad->ctyua\..+$")
+      ;; Filter for CTYUA codes/names if requested
+      (cond-> $
+        ctyuacd-f (tc/select-rows (comp ctyuacd-f ctyuacd-col))
+        ctyuanm-f (tc/select-rows (comp ctyuanm-f ctyuanm-col)))
+      ;; Filter for (integer) ages if requested
+      (cond-> $
+        min-age (tc/select-rows #(some-> % :age (>= min-age)))
+        max-age (tc/select-rows #(some-> % :age (<= max-age))))
+      ;; Pivot long for `:year`
+      (tc/pivot->longer $ #"^:population_\d{4}" {:target-columns    :year
+                                                 :value-column-name :population
+                                                 :splitter          #"^:population_(\d{4})"
+                                                 :datatypes         {:year       :int16
+                                                                     :population :int16}})
+      ;; Filter for (integer) years if requested
+      (cond-> $
+        min-year (tc/select-rows #(some-> % :year (>= min-year)))
+        max-year (tc/select-rows #(some-> % :year (<= max-year))))
+      ;; Roll up across `:sex` M & F
+      (dsr/group-by-column-agg (tc/column-names $ (complement #{:sex :population}))
+                               {:population (dsr/sum :population)}
+                               $)
+      (tc/add-column $ :sex "persons")
+      ;; Arrange dataset
+      (tc/reorder-columns $ [ladcd-col ladnm-col ctyuacd-col ctyuanm-col
+                             :country
+                             :year
+                             :age
+                             :sex
+                             :population])
+      (tc/order-by $ (tc/column-names $))
+      (tc/set-dataset-name $ (str (tc/dataset-name ds) ": long by LAD (persons)")))))
+
+(comment
+
+  :rcf)
 
 (defn ->dataset-by-lad
   [& {:as options}]
   (-> (->dataset-raw options)
       (ds-raw->ds-by-lad options)))
 
-(comment ;; Structure of (unfiltered) dataset by LAD
-  (-> {:resource-file-name default-resource-file-name}
+
+(comment ;; Structure of (unfiltered) dataset by LAD for default options
+  (-> default-options
       ->dataset-by-lad
       tc/info
       (tc/select-columns [:col-name :datatype :n-valid :n-missing :min :max]))
-  ;;=> MYE 2023 by LAD: descriptive-stats [9 6]:
+  ;;=> [myebtablesenglandwales/myebtablesenglandwales20112023.xlsx]MYEB1: long by LAD (persons): descriptive-stats [9 6]:
   ;;   
   ;;   |   :col-name | :datatype | :n-valid | :n-missing |   :min |    :max |
   ;;   |-------------|-----------|---------:|-----------:|-------:|--------:|
@@ -156,7 +189,7 @@
   ;;   |        :sex |   :string |   376194 |          0 |        |         |
   ;;   | :population |  :float64 |   376194 |          0 |    0.0 | 22477.0 |
   ;;   
-
+  
   :rcf)
 
 (defn ds-by-lad->ds-by-ctyua
@@ -166,15 +199,15 @@
     (dsr/group-by-column-agg (tc/column-names $ (complement #{:lad23cd :lad23nm :population}))
                              {:population (dsr/sum :population)}
                              $)
-    (tc/set-dataset-name $ "MYE 2023 by CTYUA")))
+    (tc/set-dataset-name $ (str/replace (tc/dataset-name ds) "LAD" "CTYUA"))))
 
 (defn ->dataset-by-ctyua
   [& {:as options}]
   (-> (->dataset-by-lad options)
       (ds-by-lad->ds-by-ctyua options)))
 
-(comment ;; Structure of (unfiltered) dataset by CTYUA
-  (-> {:resource-file-name default-resource-file-name}
+(comment ;; Structure of (unfiltered) dataset by CTYUA for default options
+  (-> default-options
       ->dataset-by-ctyua
       tc/info
       (tc/select-columns [:col-name :datatype :n-valid :n-missing :min :max]))
@@ -191,7 +224,7 @@
   ;;   |        :sex |   :string |   363584 |          0 |        |             |
   ;;   | :population |  :float64 |   363584 |          0 |    0.0 | 1871238.751 |
   ;;   
-
+  
   :rcf)
 
 (defn ->dataset
