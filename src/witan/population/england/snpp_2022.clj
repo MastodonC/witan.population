@@ -339,7 +339,7 @@
       ladnm-f (tc/select-rows (comp ladnm-f :lad22nm)))
     ;; Merge in CTYUA codes and names
     (tc/left-join $
-                  (-> (lad->ctyua/->dataset {:year 2022, :dataset-name "lad->ctyua"})
+                  (-> (lad->ctyua/->dataset {:geography-year-yy "22", :dataset-name "lad->ctyua"})
                       (tc/select-columns [:lad22cd :ctyua22cd :ctyua22nm]))
                   [:lad22cd])
     (tc/drop-columns $ #"^:lad->ctyua\..+$")

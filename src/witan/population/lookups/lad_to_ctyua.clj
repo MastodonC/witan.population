@@ -27,11 +27,11 @@
   "LUP_LAD_CTYUA/Local_Authority_District_to_County_and_Unitary_Authority_(April_2025)_Lookup_in_EW_v2.csv")
 
 (def resource-file-name-for-year
-  "Map mapping years to the corresponding resource file name."
-  {2022 LAD22-CTYUA22-EW-LU-resource-file-name
-   2023 LAD23-CTYUA23-EQ-LU-resource-file-name
-   2024 LAD24-CTYUA24-EQ-LU-resource-file-name
-   2025 LAD25-CTYUA25-EQ-LU-resource-file-name})
+  "Map mapping Geogrpahy year YY strings to the corresponding resource file name."
+  {"22" LAD22-CTYUA22-EW-LU-resource-file-name
+   "23" LAD23-CTYUA23-EQ-LU-resource-file-name
+   "24" LAD24-CTYUA24-EQ-LU-resource-file-name
+   "25" LAD25-CTYUA25-EQ-LU-resource-file-name})
 
 (defn ->dataset
   "Read mapping of Local Authority Districts to County and Unitary Authority 
@@ -40,10 +40,10 @@
    (for which resource file is looked up)."
   [& {:keys [file-path
              resource-file-name
-             year
+             geography-year-yy
              dataset-name]}]
   (let [resource-file-name (or resource-file-name
-                               (get resource-file-name-for-year year))]
+                               (get resource-file-name-for-year geography-year-yy))]
     (with-open [in (-> (or file-path (io/resource resource-file-name))
                        io/file
                        io/input-stream)]
