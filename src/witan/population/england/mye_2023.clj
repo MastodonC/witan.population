@@ -13,7 +13,7 @@
 (def default-resource-file-name
   "Name of resource file containing subnational mid-year population estimates
    (for LAs by single year of age and sex) to use by default."
-  "2023mye/myebtablesenglandwales20112023.xlsx")
+  "myebtablesenglandwales/myebtablesenglandwales20112023.xlsx")
 
 (def output-columns
   "Output columns for `witan.send` population.csv file."

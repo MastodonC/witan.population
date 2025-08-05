@@ -1,5 +1,5 @@
 (ns witan.population.england.snpp-2022
-  "Functions to read and process ONS Subnational Population Projections 
+  "Functions to read and process 2022 based ONS Subnational Population Projections 
    for LAs by single year of age and sex from: 
    https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationprojections/datasets/localauthoritiesinenglandz1"
   (:require [clojure.java.io :as io]

@@ -13,7 +13,7 @@
 (def default-resource-file-name
   "Name of resource file containing subnational mid-year population estimates
    (for LAs by single year of age and sex) to use by default."
-  "2023mye/myebtablesenglandwales20112023.xlsx")
+  "myebtablesenglandwales/myebtablesenglandwales20112023.xlsx")
 
 (defn ->dataset-raw
   "Read MYEs from MYEB1 sheet of Excel workbook into a dataset.
@@ -40,7 +40,7 @@
       ->dataset-raw
       tc/info
       (tc/select-columns [:col-name :datatype :n-valid :n-missing :min :max]))
-  ;;=> 2023mye/myebtablesenglandwales20112023.xlsx MYEB1: descriptive-stats [18 6]:
+  ;;=> myebtablesenglandwales/myebtablesenglandwales20112023.xlsx MYEB1: descriptive-stats [18 6]:
   ;;   
   ;;   |        :col-name | :datatype | :n-valid | :n-missing | :min |    :max |
   ;;   |------------------|-----------|---------:|-----------:|-----:|--------:|
