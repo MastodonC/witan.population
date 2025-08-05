@@ -11,7 +11,7 @@
             [witan.population.lookups.lad-to-ctyua :as lad->ctyua]))
 
 (def resource-options
-  "Option sets for resource files containing subnational mid-year population 
+  "Option maps for resource files containing subnational mid-year population 
    estimates (for LAs by single year of age and sex)."
   {"myebtablesenglandwales20112022v3-2021-geography" {::resource-file-name "myebtablesenglandwales/myebtablesenglandwales20112022v3.xlsx"
                                                       ::sheet-name         "MYEB1 (2021 Geography)"}
@@ -22,17 +22,19 @@
    "myebtablesenglandwales20112024"                  {::resource-file-name "myebtablesenglandwales/myebtablesenglandwales20112024.xlsx"
                                                       ::sheet-name         "MYEB1"}})
 
-(def default-options
+(def default-resource-options
   (get resource-options "myebtablesenglandwales20112023"))
 
 
 (defn ->dataset-raw
-  "Read MYEs from MYEB1 sheet of Excel workbook into a dataset.
-   Specify Excel file by either `file-path` or `resource-file-name`,
-   defaulting to `default-resource-file-name` if neither specified."
-  [& {::keys [file-path resource-file-name dataset-name sheet-name]
-      :or    {resource-file-name (:resource-file-name default-options)
-              sheet-name         (:sheet-name         default-options)}}]
+  "Read MYEs from `sheet-name` of Excel workbook into a dataset.
+   Specify Excel file by either `file-path` or `resource-file-name`."
+  [& {::keys [file-path
+              resource-file-name
+              sheet-name
+              dataset-name]
+      :or    {resource-file-name (::resource-file-name default-resource-options)
+              sheet-name         (::sheet-name         default-resource-options)}}]
   (with-open [in (-> (or file-path (io/resource resource-file-name))
                      io/file
                      io/input-stream)]
@@ -47,8 +49,8 @@
                                                      (when file-path (str "[" file-path "]" sheet-name))
                                                      (when resource-file-name (str "[" resource-file-name "]" sheet-name)))}))))
 
-(comment ;; Structure of raw dataset for default options
-  (-> default-options
+(comment ;; Structure of raw dataset for default resource options
+  (-> default-resource-options
       ->dataset-raw
       tc/info
       (tc/select-columns [:col-name :datatype :n-valid :n-missing :min :max]))
@@ -166,8 +168,8 @@
       (ds-raw->ds-by-lad options)))
 
 
-(comment ;; Structure of (unfiltered) dataset by LAD for default options
-  (-> default-options
+(comment ;; Structure of (unfiltered) dataset by LAD for default resource options
+  (-> default-resource-options
       ->dataset-by-lad
       tc/info
       (tc/select-columns [:col-name :datatype :n-valid :n-missing :min :max]))
@@ -202,8 +204,8 @@
   (-> (->dataset-by-lad options)
       (ds-by-lad->ds-by-ctyua options)))
 
-(comment ;; Structure of (unfiltered) dataset by CTYUA for default options
-  (-> default-options
+(comment ;; Structure of (unfiltered) dataset by CTYUA for default resource options
+  (-> default-resource-options
       ->dataset-by-ctyua
       tc/info
       (tc/select-columns [:col-name :datatype :n-valid :n-missing :min :max]))
