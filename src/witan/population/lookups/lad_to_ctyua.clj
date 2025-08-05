@@ -4,7 +4,8 @@
    Note dataset columns (<=2023) are (re)named using the aliases: LTLA->LAD & UTLA->CTYUA."
   (:require [clojure.java.io :as io]
             [clojure.string :as str]
-            [tech.v3.dataset :as ds]))
+            [tech.v3.dataset :as ds]
+            [tablecloth.api :as tc]))
 
 (def LAD21_CTYUA21_EW_LU-resource-file-name
   "Name of resource file mapping 2021 Local Authority Districts in England & Wales to County and Unitary Authority.
@@ -42,8 +43,8 @@
 (defn ->dataset
   "Read mapping of Local Authority Districts to County and Unitary Authority 
    from CSV file into a dataset.
-   Specify CSV file by either `file-path` or `resource-file-name` or `year` 
-   (for which resource file is looked up)."
+   Specify CSV file by either `file-path` or `resource-file-name` 
+   or `year` (for which resource file is looked up)."
   [& {::keys [file-path
               resource-file-name
               geography-year-yy
@@ -66,21 +67,32 @@
 (comment ;; Check LADCDs in each resource-file are unique
   ;; Number of LADCDs with more than one record:
   (update-vals resource-file-name-for-year (fn [s] (as-> s $
-                                                     (->dataset :resource-file-name $)
+                                                     (->dataset ::resource-file-name $)
                                                      (tc/group-by $ (tc/column-names $ #"^:lad\d\dcd"))
                                                      (tc/aggregate $ {:row-count tc/row-count})
                                                      (tc/select-rows $ #(-> % :row-count (> 1)))
                                                      (tc/row-count $))))
-  ;;=> {2022 0, 2023 0, 2024 0, 2025 0}
+  ;;=> {"21" 0, "22" 0, "23" 0, "24" 0, "25" 0}
   
  :rcf)
 
 (comment ;; EDA: Dataset structures for each resource-file
   (update-vals resource-file-name-for-year (fn [s] (as-> s $
-                                                     (->dataset :resource-file-name $)
+                                                     (->dataset ::resource-file-name $)
                                                      (tc/info $)
                                                      (tc/select-columns $ [:col-name :datatype :n-valid :n-missing :min :max]))))
-  ;;=> {2022
+  ;;=> {"21"
+  ;;    LUP_LAD_CTYUA/Lower_Tier_Local_Authority_to_Upper_Tier_Local_Authority_(April_2021)_Lookup_in_England_and_Wales.csv: descriptive-stats [5 6]:
+  ;;   
+  ;;   |  :col-name | :datatype | :n-valid | :n-missing | :min |  :max |
+  ;;   |------------|-----------|---------:|-----------:|-----:|------:|
+  ;;   |   :lad21cd |   :string |      331 |          0 |      |       |
+  ;;   |   :lad21nm |   :string |      331 |          0 |      |       |
+  ;;   | :ctyua21cd |   :string |      331 |          0 |      |       |
+  ;;   | :ctyua21nm |   :string |      331 |          0 |      |       |
+  ;;   |       :fid |    :int16 |      331 |          0 |  1.0 | 331.0 |
+  ;;   ,
+  ;;    "22"
   ;;    LUP_LAD_CTYUA/Lower_Tier_Local_Authority_to_Upper_Tier_Local_Authority_(December_2022)_Lookup_in_England_and_Wales.csv: descriptive-stats [5 6]:
   ;;   
   ;;   |  :col-name | :datatype | :n-valid | :n-missing | :min |  :max |
@@ -91,7 +103,7 @@
   ;;   | :ctyua22nm |   :string |      331 |          0 |      |       |
   ;;   |  :objectid |    :int16 |      331 |          0 |  1.0 | 331.0 |
   ;;   ,
-  ;;    2023
+  ;;    "23"
   ;;    LUP_LAD_CTYUA/Local_Authority_District_to_County_and_Unitary_Authority_(April_2023)_Lookup_in_EW.csv: descriptive-stats [7 6]:
   ;;   
   ;;   |   :col-name | :datatype | :n-valid | :n-missing | :min |  :max |
@@ -104,7 +116,7 @@
   ;;   | :ctyua23nmw |   :string |       22 |        296 |      |       |
   ;;   |   :objectid |    :int16 |      318 |          0 |  1.0 | 318.0 |
   ;;   ,
-  ;;    2024
+  ;;    "24"
   ;;    LUP_LAD_CTYUA/Local_Authority_to_County_and_Unitary_Authority_(December_2024)_Lookup_in_EW.csv: descriptive-stats [7 6]:
   ;;   
   ;;   |   :col-name | :datatype | :n-valid | :n-missing | :min |  :max |
@@ -117,7 +129,7 @@
   ;;   | :ctyua24nmw |   :string |       22 |        296 |      |       |
   ;;   |   :objectid |    :int16 |      318 |          0 |  1.0 | 318.0 |
   ;;   ,
-  ;;    2025
+  ;;    "25"
   ;;    LUP_LAD_CTYUA/Local_Authority_District_to_County_and_Unitary_Authority_(April_2025)_Lookup_in_EW_v2.csv: descriptive-stats [7 6]:
   ;;   
   ;;   |   :col-name | :datatype | :n-valid | :n-missing | :min |  :max |
