@@ -1,6 +1,6 @@
 (ns witan.population.england.snpp-2022
   "Functions to read and process 2022 based ONS Subnational Population Projections 
-   for LAs by single year of age and sex from: 
+   for LAs by single year of age and sex downloaded from: 
    https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationprojections/datasets/localauthoritiesinenglandz1"
   (:require [clojure.java.io :as io]
             [tablecloth.api :as tc]
@@ -339,8 +339,9 @@
       ladnm-f (tc/select-rows (comp ladnm-f :lad22nm)))
     ;; Merge in CTYUA codes and names
     (tc/left-join $
-                  (-> (lad->ctyua/->dataset {:geography-year-yy "22", :dataset-name "lad->ctyua"})
-                      (tc/select-columns [:lad22cd :ctyua22cd :ctyua22nm]))
+                  (-> (lad->ctyua/->dataset {::lad->ctyua/geography-year-yy "22"})
+                      (tc/select-columns [:lad22cd :ctyua22cd :ctyua22nm])
+                      (tc/set-dataset-name "lad->ctyua"))
                   [:lad22cd])
     (tc/drop-columns $ #"^:lad->ctyua\..+$")
     ;; Filter for CTYUA codes/names if requested

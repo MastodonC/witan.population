@@ -44,10 +44,10 @@
    from CSV file into a dataset.
    Specify CSV file by either `file-path` or `resource-file-name` or `year` 
    (for which resource file is looked up)."
-  [& {:keys [file-path
-             resource-file-name
-             geography-year-yy
-             dataset-name]}]
+  [& {::keys [file-path
+              resource-file-name
+              geography-year-yy
+              dataset-name]}]
   (let [resource-file-name (or resource-file-name
                                (get resource-file-name-for-year geography-year-yy))]
     (with-open [in (-> (or file-path (io/resource resource-file-name))

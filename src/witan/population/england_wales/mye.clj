@@ -122,9 +122,9 @@
         ladnm-f (tc/select-rows (comp ladnm-f ladnm-col)))
       ;; Merge in CTYUA codes and names
       (tc/left-join $
-                    (-> (lad->ctyua/->dataset {:geography-year-yy geography-year-yy
-                                               :dataset-name      "lad->ctyua"})
-                        (tc/select-columns [ladcd-col ctyuacd-col ctyuanm-col]))
+                    (-> (lad->ctyua/->dataset {::lad->ctyua/geography-year-yy geography-year-yy})
+                        (tc/select-columns [ladcd-col ctyuacd-col ctyuanm-col])
+                        (tc/set-dataset-name "lad->ctyua"))
                     [ladcd-col])
       (tc/drop-columns $ #"^:lad->ctyua\..+$")
       ;; Filter for CTYUA codes/names if requested
@@ -159,10 +159,6 @@
                              :population])
       (tc/order-by $ (tc/column-names $))
       (tc/set-dataset-name $ (str (tc/dataset-name ds) ": long by LAD (persons)")))))
-
-(comment
-
-  :rcf)
 
 (defn ->dataset-by-lad
   [& {:as options}]
