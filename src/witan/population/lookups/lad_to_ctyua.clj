@@ -6,6 +6,11 @@
             [clojure.string :as str]
             [tech.v3.dataset :as ds]))
 
+(def LAD21_CTYUA21_EW_LU-resource-file-name
+  "Name of resource file mapping 2021 Local Authority Districts in England & Wales to County and Unitary Authority.
+   From: https://geoportal.statistics.gov.uk/datasets/ons::local-authority-district-to-county-and-unitary-authority-april-2021-lookup-in-ew/about"
+  "LUP_LAD_CTYUA/Lower_Tier_Local_Authority_to_Upper_Tier_Local_Authority_(April_2021)_Lookup_in_England_and_Wales.csv")
+
 (def LAD22-CTYUA22-EW-LU-resource-file-name
   "Name of resource file mapping 2022 Local Authority Districts in England & Wales to County and Unitary Authority.
    From: https://open-geography-portalx-ons.hub.arcgis.com/datasets/ons::local-authority-district-to-county-and-unitary-authority-december-2022-lookup-in-ew/about"
@@ -28,7 +33,8 @@
 
 (def resource-file-name-for-year
   "Map mapping Geogrpahy year YY strings to the corresponding resource file name."
-  {"22" LAD22-CTYUA22-EW-LU-resource-file-name
+  {"21" LAD21_CTYUA21_EW_LU-resource-file-name
+   "22" LAD22-CTYUA22-EW-LU-resource-file-name
    "23" LAD23-CTYUA23-EQ-LU-resource-file-name
    "24" LAD24-CTYUA24-EQ-LU-resource-file-name
    "25" LAD25-CTYUA25-EQ-LU-resource-file-name})
