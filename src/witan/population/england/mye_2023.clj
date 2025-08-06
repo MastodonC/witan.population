@@ -1,4 +1,5 @@
 (ns witan.population.england.mye-2023
+  ;; TODO: Remove: Retained for backwards compatibility during development
   "Functions to read and process ONS Subnational Mid-Year Population Estimates (MYE)
    for LAs by single year of age and sex from
    https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/datasets/estimatesofthepopulationforenglandandwales
