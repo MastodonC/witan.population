@@ -1,5 +1,5 @@
-(ns witan.population.england.mye-snpp
-  "Functions to combine ONS mid-year population estimates with 
+(ns witan.population.england.2022-based
+  "Functions to combine ONS mid-year population estimates with 2022 based 
    subnational population projections to give a population dataset spanning 
    the recent past and near future."
   (:require [tablecloth.api :as tc]
