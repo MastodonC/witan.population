@@ -23,7 +23,7 @@
                                                       ::sheet-name         "MYEB1"}})
 
 (def default-resource-options
-  (get resource-options "myebtablesenglandwales20112023"))
+  (get resource-options "myebtablesenglandwales20112024"))
 
 
 (defn ->dataset-raw
@@ -57,7 +57,7 @@
       ->dataset-raw
       tc/info
       (tc/select-columns [:col-name :datatype :n-valid :n-missing :min :max]))
-  ;;=> [myebtablesenglandwales/myebtablesenglandwales20112023.xlsx]MYEB1: descriptive-stats [18 6]:
+  ;;=> [myebtablesenglandwales/myebtablesenglandwales20112024.xlsx]MYEB1: descriptive-stats [19 6]:
   ;;   
   ;;   |        :col-name | :datatype | :n-valid | :n-missing | :min |    :max |
   ;;   |------------------|-----------|---------:|-----------:|-----:|--------:|
@@ -77,8 +77,9 @@
   ;;   | :population_2019 |  :float64 |    57876 |          0 |  0.0 | 11159.0 |
   ;;   | :population_2020 |  :float64 |    57876 |          0 |  0.0 | 10601.0 |
   ;;   | :population_2021 |  :float64 |    57876 |          0 |  0.0 | 10771.0 |
-  ;;   | :population_2022 |  :float64 |    57876 |          0 |  0.0 | 11447.0 |
-  ;;   | :population_2023 |  :float64 |    57876 |          0 |  0.0 | 11565.0 |
+  ;;   | :population_2022 |  :float64 |    57876 |          0 |  0.0 | 11445.0 |
+  ;;   | :population_2023 |  :float64 |    57876 |          0 |  0.0 | 11741.0 |
+  ;;   | :population_2024 |  :float64 |    57876 |          0 |  0.0 | 11874.0 |
   ;;   
 
   :rcf)
@@ -176,6 +177,20 @@
       ->dataset-by-lad
       tc/info
       (tc/select-columns [:col-name :datatype :n-valid :n-missing :min :max]))
+  ;;=> [myebtablesenglandwales/myebtablesenglandwales20112024.xlsx]MYEB1: long by LAD (persons): descriptive-stats [9 6]:
+  ;;   
+  ;;   |   :col-name | :datatype | :n-valid | :n-missing |   :min |    :max |
+  ;;   |-------------|-----------|---------:|-----------:|-------:|--------:|
+  ;;   |    :lad23cd |   :string |   405132 |          0 |        |         |
+  ;;   |    :lad23nm |   :string |   405132 |          0 |        |         |
+  ;;   |  :ctyua23cd |   :string |   405132 |          0 |        |         |
+  ;;   |  :ctyua23nm |   :string |   405132 |          0 |        |         |
+  ;;   |    :country |   :string |   405132 |          0 |        |         |
+  ;;   |       :year |    :int16 |   405132 |          0 | 2011.0 |  2024.0 |
+  ;;   |        :age |     :int8 |   405132 |          0 |    0.0 |    90.0 |
+  ;;   |        :sex |   :string |   405132 |          0 |        |         |
+  ;;   | :population |  :float64 |   405132 |          0 |    0.0 | 23620.0 |
+  ;;   
   
   :rcf)
 
@@ -203,17 +218,17 @@
       ->dataset-by-ctyua
       tc/info
       (tc/select-columns [:col-name :datatype :n-valid :n-missing :min :max]))
-  ;;=> [myebtablesenglandwales/myebtablesenglandwales20112023.xlsx]MYEB1: long by CTYUA (persons): descriptive-stats [7 6]:
+  ;;=> [myebtablesenglandwales/myebtablesenglandwales20112024.xlsx]MYEB1: long by CTYUA (persons): descriptive-stats [7 6]:
   ;;   
   ;;   |   :col-name | :datatype | :n-valid | :n-missing |   :min |    :max |
   ;;   |-------------|-----------|---------:|-----------:|-------:|--------:|
-  ;;   |  :ctyua23cd |   :string |   207025 |          0 |        |         |
-  ;;   |  :ctyua23nm |   :string |   207025 |          0 |        |         |
-  ;;   |    :country |   :string |   207025 |          0 |        |         |
-  ;;   |       :year |    :int64 |   207025 |          0 | 2011.0 |  2023.0 |
-  ;;   |        :age |     :int8 |   207025 |          0 |    0.0 |    90.0 |
-  ;;   |        :sex |   :string |   207025 |          0 |        |         |
-  ;;   | :population |  :float64 |   207025 |          0 |    0.0 | 23032.0 |
+  ;;   |  :ctyua23cd |   :string |   222950 |          0 |        |         |
+  ;;   |  :ctyua23nm |   :string |   222950 |          0 |        |         |
+  ;;   |    :country |   :string |   222950 |          0 |        |         |
+  ;;   |       :year |    :int64 |   222950 |          0 | 2011.0 |  2024.0 |
+  ;;   |        :age |     :int8 |   222950 |          0 |    0.0 |    90.0 |
+  ;;   |        :sex |   :string |   222950 |          0 |        |         |
+  ;;   | :population |  :float64 |   222950 |          0 |    0.0 | 23620.0 |
   ;;   
   
   :rcf)
@@ -227,18 +242,17 @@
       ->dataset
       tc/info
       (tc/select-columns [:col-name :datatype :n-valid :n-missing :min :max]))
-  ;;=> [myebtablesenglandwales/myebtablesenglandwales20112023.xlsx]MYEB1: long by CTYUA (persons): descriptive-stats [7 6]:
+  ;;=> [myebtablesenglandwales/myebtablesenglandwales20112024.xlsx]MYEB1: long by CTYUA (persons): descriptive-stats [7 6]:
   ;;   
   ;;   |   :col-name | :datatype | :n-valid | :n-missing |   :min |    :max |
   ;;   |-------------|-----------|---------:|-----------:|-------:|--------:|
-  ;;   |  :ctyua23cd |   :string |   207025 |          0 |        |         |
-  ;;   |  :ctyua23nm |   :string |   207025 |          0 |        |         |
-  ;;   |    :country |   :string |   207025 |          0 |        |         |
-  ;;   |       :year |    :int64 |   207025 |          0 | 2011.0 |  2023.0 |
-  ;;   |        :age |     :int8 |   207025 |          0 |    0.0 |    90.0 |
-  ;;   |        :sex |   :string |   207025 |          0 |        |         |
-  ;;   | :population |  :float64 |   207025 |          0 |    0.0 | 23032.0 |
+  ;;   |  :ctyua23cd |   :string |   222950 |          0 |        |         |
+  ;;   |  :ctyua23nm |   :string |   222950 |          0 |        |         |
+  ;;   |    :country |   :string |   222950 |          0 |        |         |
+  ;;   |       :year |    :int64 |   222950 |          0 | 2011.0 |  2024.0 |
+  ;;   |        :age |     :int8 |   222950 |          0 |    0.0 |    90.0 |
+  ;;   |        :sex |   :string |   222950 |          0 |        |         |
+  ;;   | :population |  :float64 |   222950 |          0 |    0.0 | 23620.0 |
   ;;   
-  
   
   :rcf)
