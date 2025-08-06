@@ -1,0 +1,66 @@
+Population projections for local authorities by single year of age and sex, England 2022 based	
+Date published: 24 June 2025	
+Coverage: Local authorities and higher administrative areas in England	
+Projection: Migration category variant (2023 local authority boundaries)	
+Files:  2022-based SNPP population males.csv
+	  2022-based SNPP population females.csv
+        2022-based SNPP population persons.csv
+These three files contain projected population by single year of age, by local authority, for every year of the projection
+	
+Publication Details	
+The data tables in this spreadsheet were published at 9:30am on 24 June 2025	
+These three tables contain population projections by sex and single year of age, all local authorities and higher administrative areas within England, mid-2022 to mid-2047. 	
+The release also includes machine-readable data tables – these are our most detailed projections data and are also for users with systems designed	
+to use these. 	
+For previous versions of these data, please see:
+https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationprojections/datasets/localauthoritiesinenglandz1
+For information about all subnational population projections releases please see:
+https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationprojections/bulletins/subnationalpopulationprojectionsforengland/2022based/relateddata
+	
+Background Information	
+Subnational population projections (SNPPs) provide an indication of the potential future population size of the England. These statistics are widely used in 	
+planning; for example, fiscal projections, health, education, and pensions.	
+Long-term subnational population projections are an indication of the future trends in population by age and sex over the next 25 years, this publication will	
+cover from the year 2022 to 2047. They are trend-based projections, which means assumptions for future levels of births, deaths and migration are based	
+on observed levels mainly over the  previous five years. They show what the population will be if recent trends continue.	
+The projected resident population of an area includes all people who usually live there, whatever their nationality. People moving into or out of the	
+country are only included in the resident population if their total stay in that area is for 12 months or more, thus visitors and short-term migrants are 	
+not included. Armed forces stationed abroad are not included, but armed forces stationed within an area are included. Students are taken to be resident	
+at their term-time address.	
+These data are based on administrative geographic boundaries in place on April 2023.	
+The projections generally do not take into account any policy changes that have not yet occurred, nor those that have not yet had an impact on observed trends.	
+They are constrained at the national level to the  	
+2022-based national projections published on 28 January 2025.	
+	
+Data Sources 	
+For guidance on data used and statistics for mid-2022 and mid-2023, we refer users to the accompanying article:	
+National population projections: 2022-based, background, methodology and assumption setting	
+These projections published on 24 June 2025 are based on the 	
+Population estimates for England, Wales, Scotland and Northern Ireland: mid-2022	
+These projections are Accredited Official Statistics.	
+	
+Methodology notes 	
+Due to rounding in our assumption setting and the methodology used, data in these tables may not sum to totals because of rounding in the underlying data.	
+As different levels of the geographical hierarchy are combined in one file it is important to bear in mind the distinction between the West Midlands region 	
+(code E12000005) and the metropolitan county of West Midlands (code E11000005). It should also be noted that Greater London, which is often 	
+presented alongside metropolitan counties, is not included in this table as counts would simply duplicate those for London region.	
+Quality and methodology information for SNPPs, detailing the strengths and limitations of the data, methods used and data uses can be found in	
+Subnational population projections QMI	
+These statistics are presented unrounded to allow user to do detailed calculations. However, this should not be taken to imply accuracy at this level.	
+Because of rounding, figures may not sum.	
+
+Copyright and reproduction 	
+You may re-use this document/publication (not including logos) free of charge in any format or medium, under the terms of the Open Government	
+Licence v3.0. To view this licence visit 	
+http://www.nationalarchives.gov.uk/doc/open-government-licence	
+or write to the Information Policy Team, The National Archives, Kew, Richmond, Surrey, TW9 4DU; or email: 	
+psi@nationalarchives.gov.uk.
+	
+Contact 	
+Population and Household Projections (PHP)	
+Demography	
+pop.info@ons.gov.uk	
++44 (0) 1329444661	
+Office for National Statistics	
+Segensworth Road	
+FAREHAM
