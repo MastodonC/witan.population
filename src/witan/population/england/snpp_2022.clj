@@ -407,6 +407,7 @@
                                               #"^:(lad\d\dcd|lad\d\dnm|population)$"))))
      {:population (dsr/sum :population)}
      $)
+    (tc/order-by $ (tc/column-names $))
     (tc/set-dataset-name $ (str/replace (tc/dataset-name ds) "LAD" "CTYUA"))))
 
 (defn ->dataset-by-ctyua
