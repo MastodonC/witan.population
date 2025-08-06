@@ -43,8 +43,8 @@
 (defn ->dataset
   "Read mapping of Local Authority Districts to County and Unitary Authority 
    from CSV file into a dataset.
-   Specify CSV file by either `file-path` or `resource-file-name` 
-   or `year` (for which resource file is looked up)."
+   Specify CSV file via either `:file-path` or `:resource-file-name` 
+   or `:geography-year-yy` (for which resource file is looked up)."
   [& {::keys [file-path
               resource-file-name
               geography-year-yy
