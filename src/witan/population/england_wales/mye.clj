@@ -2,8 +2,8 @@
   "Functions to read and process ONS Subnational Mid-Year Population Estimates (MYE)
   for LAs by single year of age and sex downloaded from: 
   https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/datasets/estimatesofthepopulationforenglandandwales"
-  (:require [clojure.string :as str]
-            [clojure.java.io :as io]
+  (:require [clojure.java.io :as io]
+            [clojure.string :as str]
             [tech.v3.libs.fastexcel :as fst]
             [tech.v3.dataset.io.spreadsheet :as ss]
             [tech.v3.dataset.reductions :as dsr]
@@ -28,29 +28,32 @@
 
 (defn ->dataset-raw
   "Read MYEs from `sheet-name` of Excel workbook into a dataset.
-   Specify Excel file by either `file-path` or `resource-file-name`."
+   Specify Excel file via either `:file-path` or `:resource-file-name`,
+   and specify the `:sheet-name` to be read."
   [& {::keys [file-path
               resource-file-name
               sheet-name
-              dataset-name]
-      :or    {resource-file-name (::resource-file-name default-resource-options)
-              sheet-name         (::sheet-name         default-resource-options)}}]
-  (with-open [in (-> (or file-path (io/resource resource-file-name))
-                     io/file
-                     io/input-stream)]
-    (-> in
-        fst/input->workbook
-        ((partial some #(when (= sheet-name (.name %)) %)))
-        (ss/sheet->dataset {:n-initial-skip-rows 1
-                            :header-row?         true
-                            :key-fn              keyword
-                            :parser-fn           {:age :int8}
-                            :dataset-name        (or dataset-name
-                                                     (when file-path (str "[" file-path "]" sheet-name))
-                                                     (when resource-file-name (str "[" resource-file-name "]" sheet-name)))}))))
+              dataset-name]}]
+  (let [[resource-file-name sheet-name] (if (some? file-path)
+                                          [resource-file-name sheet-name]
+                                          [(::resource-file-name default-resource-options)
+                                           (or sheet-name (::sheet-name default-resource-options))])]
+    (with-open [in (-> (or file-path (io/resource resource-file-name))
+                       io/file
+                       io/input-stream)]
+      (-> in
+          fst/input->workbook
+          ((partial some #(when (= sheet-name (.name %)) %)))
+          (ss/sheet->dataset {:n-initial-skip-rows 1
+                              :header-row?         true
+                              :key-fn              keyword
+                              :parser-fn           {:age :int8}
+                              :dataset-name        (or dataset-name
+                                                       (when file-path (str "[" file-path "]" sheet-name))
+                                                       (when resource-file-name (str "[" resource-file-name "]" sheet-name)))})))))
 
-(comment ;; Structure of raw dataset for default resource options
-  (-> default-resource-options
+(comment ;; Structure of raw dataset for default options
+  (-> nil
       ->dataset-raw
       tc/info
       (tc/select-columns [:col-name :datatype :n-valid :n-missing :min :max]))
@@ -168,25 +171,11 @@
       (ds-raw->ds-by-lad options)))
 
 
-(comment ;; Structure of (unfiltered) dataset by LAD for default resource options
-  (-> default-resource-options
+(comment ;; Structure of (unfiltered) dataset by LAD for default options
+  (-> nil
       ->dataset-by-lad
       tc/info
       (tc/select-columns [:col-name :datatype :n-valid :n-missing :min :max]))
-  ;;=> [myebtablesenglandwales/myebtablesenglandwales20112023.xlsx]MYEB1: long by LAD (persons): descriptive-stats [9 6]:
-  ;;   
-  ;;   |   :col-name | :datatype | :n-valid | :n-missing |   :min |    :max |
-  ;;   |-------------|-----------|---------:|-----------:|-------:|--------:|
-  ;;   |    :lad23cd |   :string |   376194 |          0 |        |         |
-  ;;   |    :lad23nm |   :string |   376194 |          0 |        |         |
-  ;;   |  :ctyua23cd |   :string |   376194 |          0 |        |         |
-  ;;   |  :ctyua23nm |   :string |   376194 |          0 |        |         |
-  ;;   |    :country |   :string |   376194 |          0 |        |         |
-  ;;   |       :year |    :int16 |   376194 |          0 | 2011.0 |  2023.0 |
-  ;;   |        :age |     :int8 |   376194 |          0 |    0.0 |    90.0 |
-  ;;   |        :sex |   :string |   376194 |          0 |        |         |
-  ;;   | :population |  :float64 |   376194 |          0 |    0.0 | 22477.0 |
-  ;;   
   
   :rcf)
 
@@ -194,9 +183,14 @@
   "Roll up dataset `ds` of population by LA District to the County/Unitary Authority level."
   [ds & _]
   (as-> ds $
-    (dsr/group-by-column-agg (tc/column-names $ (complement #{:lad23cd :lad23nm :population}))
-                             {:population (dsr/sum :population)}
-                             $)
+    (dsr/group-by-column-agg
+     (tc/column-names $
+                      (complement
+                       (into #{}
+                             (tc/column-names $
+                                              #"^:(lad\d\dcd|lad\d\dnm|population)$"))))
+     {:population (dsr/sum :population)}
+     $)
     (tc/set-dataset-name $ (str/replace (tc/dataset-name ds) "LAD" "CTYUA"))))
 
 (defn ->dataset-by-ctyua
@@ -204,23 +198,22 @@
   (-> (->dataset-by-lad options)
       (ds-by-lad->ds-by-ctyua options)))
 
-(comment ;; Structure of (unfiltered) dataset by CTYUA for default resource options
-  (-> default-resource-options
+(comment ;; Structure of (unfiltered) dataset by CTYUA for default options
+  (-> nil
       ->dataset-by-ctyua
       tc/info
       (tc/select-columns [:col-name :datatype :n-valid :n-missing :min :max]))
-  ;;=> SNPP 2022 by CTYUA: descriptive-stats [8 6]:
+  ;;=> [myebtablesenglandwales/myebtablesenglandwales20112023.xlsx]MYEB1: long by CTYUA (persons): descriptive-stats [7 6]:
   ;;   
-  ;;   |   :col-name | :datatype | :n-valid | :n-missing |   :min |        :max |
-  ;;   |-------------|-----------|---------:|-----------:|-------:|------------:|
-  ;;   |  :ctyua22cd |   :string |   363584 |          0 |        |             |
-  ;;   |  :ctyua22nm |   :string |   363584 |          0 |        |             |
-  ;;   |       :year |    :int16 |   363584 |          0 | 2022.0 |    2047.000 |
-  ;;   |  :age-group |   :string |   363584 |          0 |        |             |
-  ;;   |        :age |     :int8 |   355680 |       7904 |    0.0 |      89.000 |
-  ;;   |  :component |   :string |   363584 |          0 |        |             |
-  ;;   |        :sex |   :string |   363584 |          0 |        |             |
-  ;;   | :population |  :float64 |   363584 |          0 |    0.0 | 1871238.751 |
+  ;;   |   :col-name | :datatype | :n-valid | :n-missing |   :min |    :max |
+  ;;   |-------------|-----------|---------:|-----------:|-------:|--------:|
+  ;;   |  :ctyua23cd |   :string |   207025 |          0 |        |         |
+  ;;   |  :ctyua23nm |   :string |   207025 |          0 |        |         |
+  ;;   |    :country |   :string |   207025 |          0 |        |         |
+  ;;   |       :year |    :int64 |   207025 |          0 | 2011.0 |  2023.0 |
+  ;;   |        :age |     :int8 |   207025 |          0 |    0.0 |    90.0 |
+  ;;   |        :sex |   :string |   207025 |          0 |        |         |
+  ;;   | :population |  :float64 |   207025 |          0 |    0.0 | 23032.0 |
   ;;   
   
   :rcf)
@@ -228,3 +221,24 @@
 (defn ->dataset
   [& {:as options}]
   (->dataset-by-ctyua options))
+
+(comment ;; Structure of dataset for default options
+  (-> nil
+      ->dataset
+      tc/info
+      (tc/select-columns [:col-name :datatype :n-valid :n-missing :min :max]))
+  ;;=> [myebtablesenglandwales/myebtablesenglandwales20112023.xlsx]MYEB1: long by CTYUA (persons): descriptive-stats [7 6]:
+  ;;   
+  ;;   |   :col-name | :datatype | :n-valid | :n-missing |   :min |    :max |
+  ;;   |-------------|-----------|---------:|-----------:|-------:|--------:|
+  ;;   |  :ctyua23cd |   :string |   207025 |          0 |        |         |
+  ;;   |  :ctyua23nm |   :string |   207025 |          0 |        |         |
+  ;;   |    :country |   :string |   207025 |          0 |        |         |
+  ;;   |       :year |    :int64 |   207025 |          0 | 2011.0 |  2023.0 |
+  ;;   |        :age |     :int8 |   207025 |          0 |    0.0 |    90.0 |
+  ;;   |        :sex |   :string |   207025 |          0 |        |         |
+  ;;   | :population |  :float64 |   207025 |          0 |    0.0 | 23032.0 |
+  ;;   
+  
+  
+  :rcf)
