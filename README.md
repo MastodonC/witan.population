@@ -3,17 +3,15 @@
 [ONS Subnational population projections, for local authorities in England, 
 by single year of age, rolled up to upper tier LAs](https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationprojections/datasets/localauthoritiesinenglandz1), 
 with derived variables and formatted as required for `witan.send` modelling use.
-- 2022 based (24-JUN-2025 release): [2022snpppopulationsyoa5yr.zip](https://www.ons.gov.uk/file?uri=/peoplepopulationandcommunity/populationandmigration/populationprojections/datasets/localauthoritiesinenglandz1/2022basedfiveyearmigrationvariantprojection/2022snpppopulationsyoa5yr.zip)
-- 2018 based (24-MAR-2020 release): [2018snpppopulation.zip](https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fpopulationandmigration%2fpopulationprojections%2fdatasets%2flocalauthoritiesinenglandz1%2f2018based/2018snpppopulation.zip)
 
 
 ## Usage
-### 2020 based SNPPs
+### 2022 based SNPPs
 ``` clojure
-(require '[witan.population.england.snpp-2022 :as pop])
-(pop/create-send-population-file! {:la-name   "Tower Hamlets"
-                                   :max-year  2031 
-                                   :file-name (str out-dir "population.csv")})
+(require '[witan.send.population.england :as pop])
+(pop/create-file! "population.csv" {:la-name   "Tower Hamlets"
+                                    :min-calendar-year 2022
+                                    :max-calendar-year 2035})
 ```
 
 ### 2018 based SNPPs (2020 release)
@@ -21,7 +19,7 @@ with derived variables and formatted as required for `witan.send` modelling use.
 (require '[witan.population.england.snpp-2018 :as pop])
 (pop/create-send-population-file! {:la-name   "Tower Hamlets"
                                    :max-year  2031 
-                                   :file-name (str out-dir "population.csv")})
+                                   :file-name "population.csv"})
 ```
 
 ## License
