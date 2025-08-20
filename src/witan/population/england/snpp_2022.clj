@@ -151,16 +151,13 @@
   "Read SNPPs from CSV file into a dataset.
    Specify CSV file by either via `:file-path` or `:resource-file-name`, 
    and identify the `:geography-year-yy`."
-  [& {::keys [file-path 
+  [& {::keys [file-path
               resource-file-name
               geography-year-yy
-              dataset-name]}]
-  (let [[resource-file-name
-         geography-year-yy] (if (some? file-path)
-                              [resource-file-name geography-year-yy]
-                              [(::resource-file-name default-resource-options)
-                               (or geography-year-yy (::geography-year-yy default-resource-options))])
-        ladcd-col           (keyword (str "lad"   geography-year-yy "cd"))
+              dataset-name]
+      :or {resource-file-name (default-resource-options ::resource-file-name)
+           geography-year-yy  (default-resource-options ::geography-year-yy)}}]
+  (let [ladcd-col           (keyword (str "lad"   geography-year-yy "cd"))
         ladnm-col           (keyword (str "lad"   geography-year-yy "nm"))]
     (with-open [in (-> (or file-path (io/resource resource-file-name))
                        io/file
