@@ -21,7 +21,7 @@
   {;; 2022-based: Five-year migration variant projection edition: 
    ;; aligns with the principal projection in the 2022-based NPPs.
    "2022snpppopulationsyoa5yr-persons"
-   {::resource-file-name "2022snpppopulationsyoa5yr/2022 SNPP Population persons.csv"
+   {::resource-file-name "2022snpppopulationsyoa/2022snpppopulationsyoa5yr/2022 SNPP Population persons.csv"
     ::geography-year-yy  "22"}
    ;; 2022-based: Migration category variant edition:
    ;; aligns with the SNPP projections ONS now advise using as it
