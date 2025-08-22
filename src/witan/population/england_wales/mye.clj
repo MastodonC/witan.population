@@ -33,24 +33,22 @@
   [& {::keys [file-path
               resource-file-name
               sheet-name
-              dataset-name]}]
-  (let [[resource-file-name sheet-name] (if (some? file-path)
-                                          [resource-file-name sheet-name]
-                                          [(::resource-file-name default-resource-options)
-                                           (or sheet-name (::sheet-name default-resource-options))])]
-    (with-open [in (-> (or file-path (io/resource resource-file-name))
-                       io/file
-                       io/input-stream)]
-      (-> in
-          fst/input->workbook
-          ((partial some #(when (= sheet-name (.name %)) %)))
-          (ss/sheet->dataset {:n-initial-skip-rows 1
-                              :header-row?         true
-                              :key-fn              keyword
-                              :parser-fn           {:age :int8}
-                              :dataset-name        (or dataset-name
-                                                       (when file-path (str "[" file-path "]" sheet-name))
-                                                       (when resource-file-name (str "[" resource-file-name "]" sheet-name)))})))))
+              dataset-name]
+      :or    {resource-file-name (default-resource-options ::resource-file-name)
+              sheet-name         (default-resource-options ::sheet-name)}}]
+  (with-open [in (-> (or file-path (io/resource resource-file-name))
+                     io/file
+                     io/input-stream)]
+    (-> in
+        fst/input->workbook
+        ((partial some #(when (= sheet-name (.name %)) %)))
+        (ss/sheet->dataset {:n-initial-skip-rows 1
+                            :header-row?         true
+                            :key-fn              keyword
+                            :parser-fn           {:age :int8}
+                            :dataset-name        (or dataset-name
+                                                     (when file-path (str "[" file-path "]" sheet-name))
+                                                     (when resource-file-name (str "[" resource-file-name "]" sheet-name)))}))))
 
 (comment ;; Structure of raw dataset for default options
   (-> nil
@@ -81,7 +79,7 @@
   ;;   | :population_2023 |  :float64 |    57876 |          0 |  0.0 | 11741.0 |
   ;;   | :population_2024 |  :float64 |    57876 |          0 |  0.0 | 11874.0 |
   ;;   
-
+  
   :rcf)
 
 (defn ds-raw->ds-by-lad
