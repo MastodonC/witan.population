@@ -74,7 +74,8 @@
     ;; Arrange dataset
     (tc/set-dataset-name $ (format "witan.population from %s" (tc/dataset-name ds)))))
 
-(comment ;; Example: Surrey NCY 7 from 2021 to 2026 from default `ons-pop` ns population dataset
+(comment ;; Examples using `ons-pop-ds->witan-send-pop-ds`
+  ;; Surrey NCY 7 from 2021 to 2026 from default `ons-pop` ns population dataset
   (let [pop-ds       (-> {:ctyuanm-f #{"Surrey"}
                           :min-age   (ncy->age 6)
                           :max-age   (ncy->age 8)
@@ -128,7 +129,7 @@
   ;;   |  E10000030 |     Surrey |  2024 |           2025 |   11 |              7 | persons |   15533.584 |
   ;;   |  E10000030 |     Surrey |  2025 |           2026 |   11 |              7 | persons |   15271.068 |
   ;;   }
-  
+
   :rcf)
 
 (defn ->dataset
@@ -151,13 +152,15 @@
         ons-pop-ds      (ons-pop-f ons-pop-options)]
     (ons-pop-ds->witan-send-pop-ds ons-pop-ds options-with-defaults)))
 
-(comment ;; Example: Surrey NCY 7 for `calendar-year`s 2021 to 2026 using default ONS population function
+(comment ;; Examples using `->dataset`
+  ;; Surrey NCY 7 for `calendar-year`s 2021 to 2028 using default ONS population 
+  ;; function (with default SNPPs & MYEs)
   (->dataset {:ctyuanm-f              #{"Surrey"}
               :min-academic-year      7
               :max-academic-year      7
               :min-calendar-year      2021
-              :max-calendar-year      2026})
-  ;;=> witan.population from [myebtablesenglandwales/myebtablesenglandwales20112024.xlsx]MYEB1: long by CTYUA (persons) and 2022snpppopulationsyoa/2022snpppopulationsyoamigcat23/2022 SNPP Population persons.csv: long by CTYUA concatenated at min-snpp-year of 2022 [6 8]:
+              :max-calendar-year      2028})
+  ;;=> witan.population from [myebtablesenglandwales/myebtablesenglandwales20112024.xlsx]MYEB1: long by CTYUA (persons) and 2022snpppopulationsyoa/2022snpppopulationsyoamigcat23/2022 SNPP Population persons.csv: long by CTYUA concatenated at min-snpp-year of 2022 [8 8]:
   ;;   
   ;;   | :ctyua23cd | :ctyua23nm | :year | :calendar-year | :age | :academic-year |    :sex | :population |
   ;;   |------------|------------|------:|---------------:|-----:|---------------:|---------|------------:|
@@ -167,6 +170,30 @@
   ;;   |  E10000030 |     Surrey |  2023 |           2024 |   11 |              7 | persons |   16033.011 |
   ;;   |  E10000030 |     Surrey |  2024 |           2025 |   11 |              7 | persons |   15533.584 |
   ;;   |  E10000030 |     Surrey |  2025 |           2026 |   11 |              7 | persons |   15271.068 |
+  ;;   |  E10000030 |     Surrey |  2026 |           2027 |   11 |              7 | persons |   15297.229 |
+  ;;   |  E10000030 |     Surrey |  2027 |           2028 |   11 |              7 | persons |   15378.453 |
+  ;;   
+
+  ;; Surrey NCY 7 for `calendar-year`s 2021 to 2028 using default ONS population 
+  ;; function (with default SNPPs & MYEs) using MYEs up to `:calendar-year` 2025
+  (->dataset {:ctyuanm-f              #{"Surrey"}
+              :min-academic-year      7
+              :max-academic-year      7
+              :min-calendar-year      2021
+              :min-snpp-calendar-year 2026
+              :max-calendar-year      2028})
+  ;;=> witan.population from [myebtablesenglandwales/myebtablesenglandwales20112024.xlsx]MYEB1: long by CTYUA (persons) and 2022snpppopulationsyoa/2022snpppopulationsyoamigcat23/2022 SNPP Population persons.csv: long by CTYUA concatenated at min-snpp-year of 2025 [8 8]:
+  ;;   
+  ;;   | :ctyua23cd | :ctyua23nm | :year | :calendar-year | :age | :academic-year |    :sex | :population |
+  ;;   |------------|------------|------:|---------------:|-----:|---------------:|---------|------------:|
+  ;;   |  E10000030 |     Surrey |  2020 |           2021 |   11 |              7 | persons |   15052.000 |
+  ;;   |  E10000030 |     Surrey |  2021 |           2022 |   11 |              7 | persons |   15323.000 |
+  ;;   |  E10000030 |     Surrey |  2022 |           2023 |   11 |              7 | persons |   15913.000 |
+  ;;   |  E10000030 |     Surrey |  2023 |           2024 |   11 |              7 | persons |   16194.000 |
+  ;;   |  E10000030 |     Surrey |  2024 |           2025 |   11 |              7 | persons |   15752.000 |
+  ;;   |  E10000030 |     Surrey |  2025 |           2026 |   11 |              7 | persons |   15271.068 |
+  ;;   |  E10000030 |     Surrey |  2026 |           2027 |   11 |              7 | persons |   15297.229 |
+  ;;   |  E10000030 |     Surrey |  2027 |           2028 |   11 |              7 | persons |   15378.453 |
   ;;   
 
   :rcf)
