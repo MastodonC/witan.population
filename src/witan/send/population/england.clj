@@ -171,13 +171,14 @@
 
   :rcf)
 
-(def output-columns
-  "Output columns for `witan.send` population.csv file."
+(def default-output-columns
+  "Default output columns for `witan.send` population.csv file."
   [:calendar-year :academic-year :population])
 
 (defn write!
   "Writes required output columns from witan.send.population dataset `ds` to CSV file `file-name`."
-  [ds file-name]
+  [ds file-name & {::keys [output-columns]
+                   :or    {output-columns default-output-columns}}]
   (-> ds
       (tc/select-columns output-columns)
       (tc/write! file-name)))
@@ -191,24 +192,28 @@
   (-> options
       (merge (when la-name {:ctyuanm-f #{la-name}}))
       ->dataset
-      (write! file-path)))
+      (write! file-path options)))
 
 (comment ;; Examples using `create-file!`
   ;; Surrey population for SEND ages for `calendar-year`s 2020 to 2035
-  ;; using default MYEs & SNPPs
+  ;; using default MYEs & SNPPs and output columns
   (create-file! "surrey-population.csv"
                 {:la-name "Surrey"
                  :min-calendar-year 2023
                  :max-calendar-year 2035})
-  
+
   ;; Thurrock population for SEND ages for `calendar-year`s 2023 to 2035 
   ;; using 2022 based five-year migration variant projection edition SNPPs
+  ;; retaining ONS pop `:year` and `:age` columns in addition to the default 
+  ;; output columns
   (create-file! "thurrock-population.csv"
                 (merge (get witan.population.england.snpp-2022/resource-options
                             "2022snpppopulationsyoa5yr-persons")
                        {:la-name "Thurrock"
                         :min-calendar-year 2023
-                        :max-calendar-year 2035}))
+                        :max-calendar-year 2035
+                        ::output-columns (concat default-output-columns
+                                                 [:year :age])}))
 
   ;; Dorset population for NCYs -3 to 20 for `calendar-year`s 2021 to 2035 
   ;; using 2023 MYEs (which are on 2023 LA geographies)
