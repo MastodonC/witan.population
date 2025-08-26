@@ -20,12 +20,12 @@
    Note that the implementation here is not restricted to valid NCYs."
   ;; Note that compared to `witan.population.england.snpp-2018/snpp-2018->witan-send-population`
   ;; `:academic-year` differs by +1, due to consideration here of SNPPs as mid-year estimates.
-  [x]
+  [^long x]
   (- x 4))
 
 (defn ncy->age
   "Given NCY, return nominal age at the start of the school year."
-  [x]
+  [^long x]
   (+ x 4))
 
 (defn year->census-year
@@ -37,12 +37,12 @@
   ;; Note that compared to `witan.population.england.snpp-2018/snpp-2018->witan-send-population`
   ;; `:census-year` here differs from the `:calendar-year`s there by +1, 
   ;; due to consideration here of SNPPs as mid-year estimates.
-  [x]
+  [^long x]
   (inc x))
 
 (defn census-year->year
   "Given a SEN2 census year, returns the ONS estimate/projection year of the corresponding populaton."
-  [x]
+  [^long x]
   (dec x))
 
 (defn ons-pop-ds->witan-send-pop-ds
