@@ -32,7 +32,6 @@
                (tc/drop-missing [:age])
                (tc/drop-columns [:age-group :component])
                (tc/select-rows #(-> % :year (>= min-snpp-year))))))
-        (as-> $ (tc/order-by $ (tc/column-names $)))
         (tc/set-dataset-name (format "%s and %s concatenated at min-snpp-year of %d"
                                      (tc/dataset-name mye-ds)
                                      (tc/dataset-name snpp-ds)
@@ -113,9 +112,11 @@
                         (-> options
                             (merge {:max-year (dec min-snpp-year)})
                             mye-f))]
-    (concat-mye-snpp mye-ds
-                     snpp-ds
-                     (assoc options :min-snpp-year min-snpp-year))))
+    (-> (concat-mye-snpp mye-ds
+                         snpp-ds
+                         (assoc options :min-snpp-year min-snpp-year))
+        ;; Sort only at the end
+        (tc/order-by [:ctyua23cd :year :age]))))
 
 (comment ;; Example: CTYUA level for Surrey 10 year olds from 2020 to 2025 from default MYE & 2022 based SNPPs with default min-snpp-year
   (-> {:ctyuanm-f #{"Surrey"}
@@ -134,7 +135,16 @@
   ;;   |  E10000030 |     Surrey |  2023 |   10 | persons |   15376.017 |
   ;;   |  E10000030 |     Surrey |  2024 |   10 | persons |   15173.479 |
   ;;   |  E10000030 |     Surrey |  2025 |   10 | persons |   15211.734 |
-  ;;   
+  ;;
+
+  (time
+   (-> {;; :ctyuanm-f #{"Surrey"}
+        ;; :min-age   10
+        :max-age   25
+        ;; :min-year  2020
+        :max-year  2025
+        }
+       ->dataset))
 
   :rcf)
 
