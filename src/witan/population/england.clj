@@ -50,11 +50,14 @@
         snpp-ds (-> options
                     (merge {})
                     snpp-2022/->dataset-by-lad)]
-    {:mye-ds    mye-ds
-     :snpp-ds   snpp-ds
-     :concat-ds (concat-mye-snpp mye-ds
-                                 snpp-ds
-                                 options)})
+    {:mye-ds    (-> mye-ds
+                    (#(tc/order-by % (tc/column-names %))))
+     :snpp-ds   (-> snpp-ds
+                    (#(tc/order-by % (tc/column-names %))))
+     :concat-ds (-> (concat-mye-snpp mye-ds
+                                     snpp-ds
+                                     options)
+                    (#(tc/order-by % (tc/column-names %))))})
   ;;=> {:mye-ds [myebtablesenglandwales/myebtablesenglandwales20112024.xlsx]MYEB1: long by LAD (persons) [5 9]:
   ;;   
   ;;   |  :lad23cd |   :lad23nm | :ctyua23cd | :ctyua23nm | :country | :year | :age |    :sex | :population |
@@ -164,7 +167,8 @@
        :max-age   10
        :min-year  2020
        :max-year  2025}
-      ->dataset-by-lad)
+      ->dataset-by-lad
+      (#(tc/order-by % (tc/column-names %))))
   ;;=> [myebtablesenglandwales/myebtablesenglandwales20112024.xlsx]MYEB1: long by LAD (persons) and 2022snpppopulationsyoa/2022snpppopulationsyoamigcat23/2022 SNPP Population persons.csv: long by LAD concatenated at min-snpp-year of 2022 [66 8]:
   ;;   
   ;;   |  :lad23cd |        :lad23nm | :ctyua23cd | :ctyua23nm | :year | :age |    :sex | :population |
