@@ -87,8 +87,9 @@
                            :min-academic-year 7
                            :max-academic-year 7}
                           (ons-pop-ds->witan-send-pop-ds pop-ds))]
-    {:pop-ds       pop-ds
-     :witan-pop-ds witan-pop-ds})
+    (-> {:pop-ds       pop-ds
+         :witan-pop-ds witan-pop-ds}
+        (update-vals #(tc/order-by % (tc/column-names %)))))
   ;;=> {:pop-ds
   ;;    [myebtablesenglandwales/myebtablesenglandwales20112024.xlsx]MYEB1: long by CTYUA (persons) and 2022snpppopulationsyoa/2022snpppopulationsyoamigcat23/2022 SNPP Population persons.csv: long by CTYUA concatenated at min-snpp-year of 2022 [24 6]:
   ;;   
@@ -155,11 +156,13 @@
 (comment ;; Examples using `->dataset`
   ;; Surrey NCY 7 for `calendar-year`s 2021 to 2028 using default ONS population 
   ;; function (with default SNPPs & MYEs)
-  (->dataset {:ctyuanm-f              #{"Surrey"}
-              :min-academic-year      7
-              :max-academic-year      7
-              :min-calendar-year      2021
-              :max-calendar-year      2028})
+  (-> {:ctyuanm-f              #{"Surrey"}
+       :min-academic-year      7
+       :max-academic-year      7
+       :min-calendar-year      2021
+       :max-calendar-year      2028}
+      ->dataset
+      (#(tc/order-by % (tc/column-names %))))
   ;;=> witan.population from [myebtablesenglandwales/myebtablesenglandwales20112024.xlsx]MYEB1: long by CTYUA (persons) and 2022snpppopulationsyoa/2022snpppopulationsyoamigcat23/2022 SNPP Population persons.csv: long by CTYUA concatenated at min-snpp-year of 2022 [8 8]:
   ;;   
   ;;   | :ctyua23cd | :ctyua23nm | :year | :calendar-year | :age | :academic-year |    :sex | :population |
@@ -173,15 +176,17 @@
   ;;   |  E10000030 |     Surrey |  2026 |           2027 |   11 |              7 | persons |   15297.229 |
   ;;   |  E10000030 |     Surrey |  2027 |           2028 |   11 |              7 | persons |   15378.453 |
   ;;   
-
+  
   ;; Surrey NCY 7 for `calendar-year`s 2021 to 2028 using default ONS population 
   ;; function (with default SNPPs & MYEs) using MYEs up to `:calendar-year` 2025
-  (->dataset {:ctyuanm-f              #{"Surrey"}
-              :min-academic-year      7
-              :max-academic-year      7
-              :min-calendar-year      2021
-              :min-snpp-calendar-year 2026
-              :max-calendar-year      2028})
+  (-> {:ctyuanm-f              #{"Surrey"}
+       :min-academic-year      7
+       :max-academic-year      7
+       :min-calendar-year      2021
+       :min-snpp-calendar-year 2026
+       :max-calendar-year      2028}
+      ->dataset
+      (#(tc/order-by % (tc/column-names %))))
   ;;=> witan.population from [myebtablesenglandwales/myebtablesenglandwales20112024.xlsx]MYEB1: long by CTYUA (persons) and 2022snpppopulationsyoa/2022snpppopulationsyoamigcat23/2022 SNPP Population persons.csv: long by CTYUA concatenated at min-snpp-year of 2025 [8 8]:
   ;;   
   ;;   | :ctyua23cd | :ctyua23nm | :year | :calendar-year | :age | :academic-year |    :sex | :population |
