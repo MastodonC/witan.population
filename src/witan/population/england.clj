@@ -138,15 +138,6 @@
   ;;   |  E10000030 |     Surrey |  2025 |   10 | persons |   15211.734 |
   ;;
 
-  (time
-   (-> {;; :ctyuanm-f #{"Surrey"}
-        ;; :min-age   10
-        :max-age   25
-        ;; :min-year  2020
-        :max-year  2025
-        }
-       ->dataset))
-
   :rcf)
 
 (defn ->dataset-by-ctyua
