@@ -50,14 +50,12 @@
         snpp-ds (-> options
                     (merge {})
                     snpp-2022/->dataset-by-lad)]
-    {:mye-ds    (-> mye-ds
-                    (#(tc/order-by % (tc/column-names %))))
-     :snpp-ds   (-> snpp-ds
-                    (#(tc/order-by % (tc/column-names %))))
-     :concat-ds (-> (concat-mye-snpp mye-ds
+    (-> {:mye-ds    mye-ds
+         :snpp-ds   snpp-ds
+         :concat-ds (concat-mye-snpp mye-ds
                                      snpp-ds
-                                     options)
-                    (#(tc/order-by % (tc/column-names %))))})
+                                     options)}
+        (update-vals #(tc/order-by % (tc/column-names %)))))
   ;;=> {:mye-ds [myebtablesenglandwales/myebtablesenglandwales20112024.xlsx]MYEB1: long by LAD (persons) [5 9]:
   ;;   
   ;;   |  :lad23cd |   :lad23nm | :ctyua23cd | :ctyua23nm | :country | :year | :age |    :sex | :population |
@@ -88,7 +86,7 @@
   ;;   | E06000005 | Darlington |  E06000005 | Darlington |  2024 |   10 | persons |    1276.514 |
   ;;   | E06000005 | Darlington |  E06000005 | Darlington |  2025 |   10 | persons |    1253.260 |
   ;;   }
-
+  
   :rcf)
 
 (defn ->dataset
@@ -125,7 +123,8 @@
        :max-age   10
        :min-year  2020
        :max-year  2025}
-      ->dataset)
+      ->dataset
+      (#(tc/order-by % (tc/column-names %))))
   ;;=> [myebtablesenglandwales/myebtablesenglandwales20112024.xlsx]MYEB1: long by CTYUA (persons) and 2022snpppopulationsyoa/2022snpppopulationsyoamigcat23/2022 SNPP Population persons.csv: long by CTYUA concatenated at min-snpp-year of 2022 [6 6]:
   ;;   
   ;;   | :ctyua23cd | :ctyua23nm | :year | :age |    :sex | :population |
