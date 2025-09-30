@@ -117,9 +117,7 @@
                             mye-f))]
     (-> (concat-mye-snpp mye-ds
                          snpp-ds
-                         (assoc options :min-snpp-year min-snpp-year))
-        ;; Sort only at the end
-        (tc/order-by [:ctyua23cd :year :age]))))
+                         (assoc options :min-snpp-year min-snpp-year)))))
 
 (comment ;; Example: CTYUA level for Surrey 10 year olds from 2020 to 2025 from default MYE & 2022 based SNPPs with default min-snpp-year
   (-> {:ctyuanm-f #{"Surrey"}
