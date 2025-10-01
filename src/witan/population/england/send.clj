@@ -1,4 +1,4 @@
-(ns witan.send.population.england
+(ns witan.population.england.send
   "Functions to add `witan.send` `:calendar-year` and `:academic-year` to ONS
    population estimates for English County & Unitary Authorities 
    and write `witan.send` population files."
@@ -208,11 +208,12 @@
   [:calendar-year :academic-year :population])
 
 (defn write!
-  "Writes required output columns from witan.send.population dataset `ds` to CSV file `file-name`."
+  "Writes required output columns from witan.send.population dataset `ds` to sorted CSV file `file-name`."
   [ds file-name & {::keys [output-columns]
                    :or    {output-columns default-output-columns}}]
   (-> ds
       (tc/select-columns output-columns)
+      (tc/order-by output-columns)
       (tc/write! file-name)))
 
 (defn create-file!
