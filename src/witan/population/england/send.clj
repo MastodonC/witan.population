@@ -208,11 +208,12 @@
   [:calendar-year :academic-year :population])
 
 (defn write!
-  "Writes required output columns from witan.send.population dataset `ds` to CSV file `file-name`."
+  "Writes required output columns from witan.send.population dataset `ds` to sorted CSV file `file-name`."
   [ds file-name & {::keys [output-columns]
                    :or    {output-columns default-output-columns}}]
   (-> ds
       (tc/select-columns output-columns)
+      (tc/order-by output-columns)
       (tc/write! file-name)))
 
 (defn create-file!
