@@ -1,4 +1,4 @@
-(ns witan.send.population.england
+(ns witan.population.england.send
   "Functions to add `witan.send` `:calendar-year` and `:academic-year` to ONS
    population estimates for English County & Unitary Authorities 
    and write `witan.send` population files."
