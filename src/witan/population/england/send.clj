@@ -17,6 +17,8 @@
    school year. Per https://www.gov.uk/national-curriculum, children aged 5 at 
    the start of the school year should be in NCY 1. Thus the offset between age 
    at the start of the school year and NCY is -4.
+   This is in line with how `witan.send` uses the population, 
+   as rates are based on the NCY joined.
    Note that the implementation here is not restricted to valid NCYs."
   ;; Note that compared to `witan.population.england.snpp-2018/snpp-2018->witan-send-population`
   ;; `:academic-year` differs by +1, due to consideration here of SNPPs as mid-year estimates.
@@ -28,22 +30,25 @@
   [^long x]
   (+ x 4))
 
-(defn year->census-year
-  "Given the year of an ONS estimate/projection, returns the year of the SEN2 census
-   that populaton would be reported in: The ONS population estimates/projections 
-   are mid-year estiamtes, so that population would be reported in the SEN2 
-   census the following January, so the census-year is the year after the 
-   estimate year, i.e. an offset of +1."
-  ;; Note that compared to `witan.population.england.snpp-2018/snpp-2018->witan-send-population`
-  ;; `:census-year` here differs from the `:calendar-year`s there by +1, 
-  ;; due to consideration here of SNPPs as mid-year estimates.
+(defn estimate-year->census-year
+  "Given the year of an ONS estimate/projection, returns the corresponding 
+   `calendar-year` for `witan.send` modelling use:
+   - The ONS population estimates/projections are mid-year estiamtes.
+   - Although this populaton would be reported in the SEN2 census the following
+     January, this is not how `witan.send` uses the population estimates.
+   - In `witan.send`, the population for a `calendar-year` CY is the population
+     from which CY→CY+1 joiner rates are calculated.
+     (Recall that `witan.send` model transitions only have the `:calendar-year`
+      the transition is from, not `:calendar-year-1` & `:calendar-year-2`.)
+   - Therefore the appropriate `calendar-year` for `witan.send` use is the same
+     as the estimate year."
   [^long x]
-  (inc x))
+  x)
 
-(defn census-year->year
+(defn census-year->estimate-year
   "Given a SEN2 census year, returns the ONS estimate/projection year of the corresponding populaton."
   [^long x]
-  (dec x))
+  x)
 
 (defn ons-pop-ds->witan-send-pop-ds
   "Given ONS population dataset `ds` by `:year` & `:age`, add witan.send `:calendar-year` & `:academic-year`.
@@ -56,7 +61,7 @@
                 min-calendar-year max-calendar-year]}]
   (as-> ds $
     ;; Derive `:calendar-year`
-    (tc/map-columns $ :calendar-year :int16 [:year] year->census-year)
+    (tc/map-columns $ :calendar-year :int16 [:year] estimate-year->census-year)
     (tc/reorder-columns $ (concat (take-while (complement #{:year}) (tc/column-names $))
                                   [:year :calendar-year]))
     ;; Select `:calendar-year`s (if specified)
@@ -79,8 +84,8 @@
   (let [pop-ds       (-> {:ctyuanm-f #{"Surrey"}
                           :min-age   (ncy->age 6)
                           :max-age   (ncy->age 8)
-                          :min-year  (census-year->year 2020)
-                          :max-year  (census-year->year 2027)}
+                          :min-year  (census-year->estimate-year 2020)
+                          :max-year  (census-year->estimate-year 2027)}
                          ons-pop/->dataset)
         witan-pop-ds (->> {:min-calendar-year 2021
                            :max-calendar-year 2026
@@ -95,9 +100,6 @@
   ;;   
   ;;   | :ctyua23cd | :ctyua23nm | :year | :age |    :sex | :population |
   ;;   |------------|------------|------:|-----:|---------|------------:|
-  ;;   |  E10000030 |     Surrey |  2019 |   10 | persons |   14984.000 |
-  ;;   |  E10000030 |     Surrey |  2019 |   11 | persons |   15286.000 |
-  ;;   |  E10000030 |     Surrey |  2019 |   12 | persons |   14899.000 |
   ;;   |  E10000030 |     Surrey |  2020 |   10 | persons |   15240.000 |
   ;;   |  E10000030 |     Surrey |  2020 |   11 | persons |   15052.000 |
   ;;   |  E10000030 |     Surrey |  2020 |   12 | persons |   15392.000 |
@@ -105,10 +107,10 @@
   ;;   |  E10000030 |     Surrey |  2021 |   11 | persons |   15323.000 |
   ;;   |  E10000030 |     Surrey |  2021 |   12 | persons |   15234.000 |
   ;;   |  E10000030 |     Surrey |  2022 |   10 | persons |   15842.000 |
+  ;;   |  E10000030 |     Surrey |  2022 |   11 | persons |   15885.000 |
+  ;;   |  E10000030 |     Surrey |  2022 |   12 | persons |   15647.000 |
+  ;;   |  E10000030 |     Surrey |  2023 |   10 | persons |   15376.017 |
   ;;   |        ... |        ... |   ... |  ... |     ... |         ... |
-  ;;   |  E10000030 |     Surrey |  2023 |   11 | persons |   16033.011 |
-  ;;   |  E10000030 |     Surrey |  2023 |   12 | persons |   16070.314 |
-  ;;   |  E10000030 |     Surrey |  2024 |   10 | persons |   15173.479 |
   ;;   |  E10000030 |     Surrey |  2024 |   11 | persons |   15533.584 |
   ;;   |  E10000030 |     Surrey |  2024 |   12 | persons |   16190.217 |
   ;;   |  E10000030 |     Surrey |  2025 |   10 | persons |   15211.734 |
@@ -117,18 +119,21 @@
   ;;   |  E10000030 |     Surrey |  2026 |   10 | persons |   15301.142 |
   ;;   |  E10000030 |     Surrey |  2026 |   11 | persons |   15297.229 |
   ;;   |  E10000030 |     Surrey |  2026 |   12 | persons |   15352.579 |
+  ;;   |  E10000030 |     Surrey |  2027 |   10 | persons |   14717.666 |
+  ;;   |  E10000030 |     Surrey |  2027 |   11 | persons |   15378.453 |
+  ;;   |  E10000030 |     Surrey |  2027 |   12 | persons |   15379.555 |
   ;;   ,
   ;;    :witan-pop-ds
   ;;    witan.population from [myebtablesenglandwales/myebtablesenglandwales20112024.xlsx]MYEB1: long by CTYUA (persons) and 2022snpppopulationsyoa/2022snpppopulationsyoamigcat23/2022 SNPP Population persons.csv: long by CTYUA concatenated at min-snpp-year of 2022 [6 8]:
   ;;   
   ;;   | :ctyua23cd | :ctyua23nm | :year | :calendar-year | :age | :academic-year |    :sex | :population |
   ;;   |------------|------------|------:|---------------:|-----:|---------------:|---------|------------:|
-  ;;   |  E10000030 |     Surrey |  2020 |           2021 |   11 |              7 | persons |   15052.000 |
-  ;;   |  E10000030 |     Surrey |  2021 |           2022 |   11 |              7 | persons |   15323.000 |
-  ;;   |  E10000030 |     Surrey |  2022 |           2023 |   11 |              7 | persons |   15885.000 |
-  ;;   |  E10000030 |     Surrey |  2023 |           2024 |   11 |              7 | persons |   16033.011 |
-  ;;   |  E10000030 |     Surrey |  2024 |           2025 |   11 |              7 | persons |   15533.584 |
-  ;;   |  E10000030 |     Surrey |  2025 |           2026 |   11 |              7 | persons |   15271.068 |
+  ;;   |  E10000030 |     Surrey |  2021 |           2021 |   11 |              7 | persons |   15323.000 |
+  ;;   |  E10000030 |     Surrey |  2022 |           2022 |   11 |              7 | persons |   15885.000 |
+  ;;   |  E10000030 |     Surrey |  2023 |           2023 |   11 |              7 | persons |   16033.011 |
+  ;;   |  E10000030 |     Surrey |  2024 |           2024 |   11 |              7 | persons |   15533.584 |
+  ;;   |  E10000030 |     Surrey |  2025 |           2025 |   11 |              7 | persons |   15271.068 |
+  ;;   |  E10000030 |     Surrey |  2026 |           2026 |   11 |              7 | persons |   15297.229 |
   ;;   }
 
   :rcf)
@@ -147,9 +152,9 @@
         ons-pop-options (merge options-with-defaults
                                (when min-academic-year      {:min-age       (-> min-academic-year      ncy->age)})
                                (when max-academic-year      {:max-age       (-> max-academic-year      ncy->age)})
-                               (when min-calendar-year      {:min-year      (-> min-calendar-year      census-year->year)})
-                               (when min-snpp-calendar-year {:min-snpp-year (-> min-snpp-calendar-year census-year->year)})
-                               (when max-calendar-year      {:max-year      (-> max-calendar-year      census-year->year)}))
+                               (when min-calendar-year      {:min-year      (-> min-calendar-year      census-year->estimate-year)})
+                               (when min-snpp-calendar-year {:min-snpp-year (-> min-snpp-calendar-year census-year->estimate-year)})
+                               (when max-calendar-year      {:max-year      (-> max-calendar-year      census-year->estimate-year)}))
         ons-pop-ds      (ons-pop-f ons-pop-options)]
     (ons-pop-ds->witan-send-pop-ds ons-pop-ds options-with-defaults)))
 
@@ -167,14 +172,14 @@
   ;;   
   ;;   | :ctyua23cd | :ctyua23nm | :year | :calendar-year | :age | :academic-year |    :sex | :population |
   ;;   |------------|------------|------:|---------------:|-----:|---------------:|---------|------------:|
-  ;;   |  E10000030 |     Surrey |  2020 |           2021 |   11 |              7 | persons |   15052.000 |
-  ;;   |  E10000030 |     Surrey |  2021 |           2022 |   11 |              7 | persons |   15323.000 |
-  ;;   |  E10000030 |     Surrey |  2022 |           2023 |   11 |              7 | persons |   15885.000 |
-  ;;   |  E10000030 |     Surrey |  2023 |           2024 |   11 |              7 | persons |   16033.011 |
-  ;;   |  E10000030 |     Surrey |  2024 |           2025 |   11 |              7 | persons |   15533.584 |
-  ;;   |  E10000030 |     Surrey |  2025 |           2026 |   11 |              7 | persons |   15271.068 |
-  ;;   |  E10000030 |     Surrey |  2026 |           2027 |   11 |              7 | persons |   15297.229 |
-  ;;   |  E10000030 |     Surrey |  2027 |           2028 |   11 |              7 | persons |   15378.453 |
+  ;;   |  E10000030 |     Surrey |  2021 |           2021 |   11 |              7 | persons |   15323.000 |
+  ;;   |  E10000030 |     Surrey |  2022 |           2022 |   11 |              7 | persons |   15885.000 |
+  ;;   |  E10000030 |     Surrey |  2023 |           2023 |   11 |              7 | persons |   16033.011 |
+  ;;   |  E10000030 |     Surrey |  2024 |           2024 |   11 |              7 | persons |   15533.584 |
+  ;;   |  E10000030 |     Surrey |  2025 |           2025 |   11 |              7 | persons |   15271.068 |
+  ;;   |  E10000030 |     Surrey |  2026 |           2026 |   11 |              7 | persons |   15297.229 |
+  ;;   |  E10000030 |     Surrey |  2027 |           2027 |   11 |              7 | persons |   15378.453 |
+  ;;   |  E10000030 |     Surrey |  2028 |           2028 |   11 |              7 | persons |   14804.702 |
   ;;   
   
   ;; Surrey NCY 7 for `calendar-year`s 2021 to 2028 using default ONS population 
@@ -227,43 +232,52 @@
       ->dataset
       (write! file-path options)))
 
-(comment ;; Examples using `create-file!`
+(comment ;; Examples using `create-file!`:
   ;; Surrey population for SEND ages for `calendar-year`s 2020 to 2035
-  ;; using default MYEs & SNPPs and output columns
-  (create-file! "surrey-population.csv"
-                {:la-name "Surrey"
-                 :min-calendar-year 2023
+  ;; using default MYEs & SNPPs and output columns:
+  (create-file! "population-surrey.csv"
+                {:la-name           "Surrey"
+                 :min-calendar-year 2020
                  :max-calendar-year 2035})
+  
+  :rcf)
 
+(comment ;; Examples to replicate previous population files:
   ;; Thurrock population for SEND ages for `calendar-year`s 2023 to 2035 
   ;; using 2022 based five-year migration variant projection edition SNPPs
-  ;; retaining ONS pop `:year` and `:age` columns in addition to the default 
-  ;; output columns
-  (create-file! "thurrock-population.csv"
-                (merge (get witan.population.england.snpp-2022/resource-options
-                            "2022snpppopulationsyoa5yr-persons")
-                       {:la-name "Thurrock"
-                        :min-calendar-year 2023
-                        :max-calendar-year 2035
-                        ::output-columns (concat default-output-columns
-                                                 [:year :age])}))
+  ;; incrementing `calendar-year` to be the `calendar-year` joined
+  ;; (as had previously implemented), and retaining ONS pop `:year` and `:age` 
+  ;; columns in addition to the default output columns:
+  (-> (merge (get witan.population.england.snpp-2022/resource-options
+                  "2022snpppopulationsyoa5yr-persons")
+             {:ctyuanm-f         #{"Thurrock"}
+              :min-calendar-year 2022
+              :max-calendar-year 2034})
+      ->dataset
+      (tc/map-columns :calendar-year inc)
+      (write! "population-thurrock.csv"
+              {::output-columns (concat default-output-columns
+                                        [:year :age])}))
 
   ;; Dorset population for NCYs -3 to 20 for `calendar-year`s 2021 to 2035 
   ;; using 2023 MYEs (which are on 2023 LA geographies)
   ;; and   2022 based five-year migration variant projection edition SNPPs, 
   ;; considering the latter as if on 2023 LA geographies (rather than 2022),
   ;; noting that Dorset is a unitary authority in both 2022 & 2023 so there is 
-  ;; no issue mixing geography years.
-  (create-file! "dorset-population.csv"
-                (-> (merge (get witan.population.england-wales.mye/resource-options
-                                "myebtablesenglandwales20112023")
-                           (get witan.population.england.snpp-2022/resource-options
-                                "2022snpppopulationsyoa5yr-persons")
-                           {:witan.population.england.snpp-2022/geography-year-yy "23"}
-                           {:la-name "Dorset"
-                            :min-academic-year -3
-                            :max-academic-year 20
-                            :min-calendar-year 2021
-                            :max-calendar-year 2035})))
+  ;; no issue mixing geography years, and incrementing `calendar-year` to be 
+  ;; the `calendar-year` joined (as had previously implemented).
+  (-> (merge (get witan.population.england-wales.mye/resource-options
+                  "myebtablesenglandwales20112023")
+             (get witan.population.england.snpp-2022/resource-options
+                  "2022snpppopulationsyoa5yr-persons")
+             {:witan.population.england.snpp-2022/geography-year-yy "23"}
+             {:ctyuanm-f         #{"Dorset"}
+              :min-academic-year -3
+              :max-academic-year 20
+              :min-calendar-year 2020
+              :max-calendar-year 2034})
+      ->dataset
+      (tc/map-columns :calendar-year inc)
+      (write! "population-dorset.csv"))
 
   :rcf)
