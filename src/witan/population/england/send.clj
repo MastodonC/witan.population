@@ -235,9 +235,9 @@
 (comment ;; Examples using `create-file!`:
   ;; Surrey population for SEND ages for `calendar-year`s 2020 to 2035
   ;; using default MYEs & SNPPs and output columns:
-  (create-file! "surrey-population.csv"
+  (create-file! "population-surrey.csv"
                 {:la-name           "Surrey"
-                 :min-calendar-year 2023
+                 :min-calendar-year 2020
                  :max-calendar-year 2035})
   
   :rcf)
