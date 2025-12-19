@@ -21,12 +21,12 @@
    "2022snpppopulationsyoa5yr-persons"
    {::resource-file-name "2022snpppopulationsyoa/2022snpppopulationsyoa5yr/2022 SNPP Population persons.csv"
     ::geography-year-yy  "22"}
-   ;; 2022-based: Migration category variant edition:
+   ;; 2022-based: Migration category variant edition (2025-06-24 release):
    ;; aligns with the SNPP projections ONS now advise using as it
    ;; "is a better reflection of short-term population change".
    ;; See: https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationprojections/bulletins/subnationalpopulationprojectionsforengland/2022based
    "2022snpppopulationsyoamigcat-persons"
-   {::resource-file-name "2022snpppopulationsyoa/2022snpppopulationsyoamigcat/2022 SNPP Population persons.csv"
+   {::resource-file-name "2022snpppopulationsyoa/2022snpppopulationsyoamigcat_2025-06-24/2022 SNPP Population persons.csv"
     ::geography-year-yy "22"}
    ;; 2022-based: Migration category variant edition (2023 geographies):
    ;; aligns with the SNPP projections ONS now advise using as it
@@ -122,7 +122,7 @@
   ;;   |       2046 |  :float64 |    27232 |          0 | 10.265 | 1212554.401 |
   ;;   |       2047 |  :float64 |    27232 |          0 |  9.678 | 1214273.444 |
   ;;   
-  
+
   :rcf)
 
 (comment ;; EDA of raw dataset for default options
@@ -289,7 +289,7 @@
   ;;   |        :sex |   :string |   708032 |          0 |        |             |
   ;;   | :population |  :float64 |   708032 |          0 |    0.0 | 1214273.444 |
   ;;   
-  
+
   :rcf)
 
 (defn ds-by-lad->ds-by-ctyua
@@ -329,7 +329,7 @@
   ;;   |        :sex |   :string |   365976 |          0 |        |             |
   ;;   | :population |  :float64 |   365976 |          0 |    0.0 | 1848534.511 |
   ;;   
-  
+
   :rcf)
 
 (defn ->dataset
